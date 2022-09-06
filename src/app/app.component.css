@@ -1,0 +1,25 @@
+.container {
+  height: 100vh;
+  width: 100vw;
+}
+
+.icon {
+  width: 4px;
+  height: 4px;
+  border: 1px solid #ded3b4;
+}
+
+.marker {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  justify-content: right;
+  gap: 2px;
+}
+
+.name {
+  background: darkolivegreen;
+  padding: 0 2px;
+  color: #ffe130;
+  font-size: 10px;
+}
