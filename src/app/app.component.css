@@ -1,25 +1,14 @@
-.container {
-  height: 100vh;
-  width: 100vw;
+html, body
+{
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.icon {
-  width: 4px;
-  height: 4px;
-  border: 1px solid #ded3b4;
-}
-
-.marker {
-  position: absolute;
-  display: flex;
-  align-items: baseline;
-  justify-content: right;
-  gap: 2px;
-}
-
-.name {
-  background: darkolivegreen;
-  padding: 0 2px;
-  color: #ffe130;
-  font-size: 10px;
+canvas
+{
+  width: 100%;
+  height: 100%;
+  background: #111;
 }
