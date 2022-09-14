@@ -15,9 +15,9 @@ function getImage(i,j) {
         });
 
         response.on('end', function() {
-            let name = 'src/assets/image-' + `${i}-${j}.webp`;
+            let name = 'src/assets/4/image-' + `${i}-${j}.webp`;
             console.log('download', name, 'from', url);
-            fs.writeFileSync('src/assets/4/image-' + `${i}-${j}.webp`, data.read());
+            fs.writeFileSync(name, data.read());
         });
     }).end();
 }
