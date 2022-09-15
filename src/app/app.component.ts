@@ -95,8 +95,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   adjustZoom(e: WheelEvent) {
     if (!this.isDragging) {
       this.zoomLevel += Math.sign(-e.deltaY);
-      this.zoomLevel = Math.min(this.zoomLevel, MAX_ZOOM);
-      this.zoomLevel = Math.max(this.zoomLevel, MIN_ZOOM);
+      if (this.zoomLevel > MAX_ZOOM || this.zoomLevel < MIN_ZOOM) {
+        this.zoomLevel -= Math.sign(-e.deltaY);
+        return;
+      }
 
       const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-e.deltaY))
       this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel);
