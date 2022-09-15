@@ -12,23 +12,30 @@ const ZOOM_FACTOR = 1.5;
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas', { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
-  public canvas: HTMLCanvasElement;
-  public ctx: CanvasRenderingContext2D;
-  public cameraOffset: { x: number, y: number } = { x: 0, y: 0 };
-  public zoomLevel: number = -3;
-  public cameraZoom: number = Math.pow(ZOOM_FACTOR, this.zoomLevel);
-  public isDragging: boolean = false;
-  public dragStart: { x: number, y: number } = { x: 0, y: 0 };
-  public initialPinchDistance: number | null = null
-  public update: boolean = true;
-  public image: HTMLImageElement = new Image();
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  cameraOffset: { x: number, y: number } = { x: 0, y: 0 };
+  zoomLevel: number = -3;
+  cameraZoom: number = Math.pow(ZOOM_FACTOR, this.zoomLevel);
+  isDragging: boolean = false;
+  dragStart: { x: number, y: number } = { x: 0, y: 0 };
+  initialPinchDistance: number | null = null
+  update: boolean = true;
+  images: HTMLImageElement[][] = [];
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
     this.ctx = this.canvas.getContext('2d')!;
 
-    this.image = new Image();
-    this.image.src = 'assets/4/image-2-2.webp';
+    for (let i = 0; i < 4; i++) {
+      this.images.push([]);
+      for (let j = 0; j < 4; j++) {
+        const image: HTMLImageElement = new Image();
+        image.src = `assets/4/image-${i}-${j}.webp`;
+        image.loading = 'lazy';
+        this.images[i].push(image);
+      }
+    }
 
     this.draw();
   }
@@ -48,16 +55,23 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-          // console.log(i, j);
+          const image = this.images[i][j];
+          if (image.complete) {
+            this.ctx.drawImage(image, i * 2048, j * 2048);
+          } else {
+            image.onload = () => {
+              this.ctx.drawImage(image, i * 2048, j * 2048);
+            }
+          }
         }
       }
-      if (this.image.complete) {
-        this.ctx.drawImage(this.image, 0, 0);
-      } else {
-        this.image.onload = () => {
-          this.ctx.drawImage(this.image, 0, 0);
-        }
-      }
+      // if (this.image.complete) {
+      //   this.ctx.drawImage(this.image, 0, 0);
+      // } else {
+      //   this.image.onload = () => {
+      //     this.ctx.drawImage(this.image, 0, 0);
+      //   }
+      // }
 
       this.update = false;
     }
