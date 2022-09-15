@@ -68,8 +68,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   @HostListener('document:mousedown', ['$event'])
   onPointerDown(e: MouseEvent) {
     this.isDragging = true;
-    this.dragStart.x = this.getEventLocation(e).x/this.cameraZoom - this.cameraOffset.x;
-    this.dragStart.y = this.getEventLocation(e).y/this.cameraZoom - this.cameraOffset.y;
+    this.dragStart.x = this.getEventLocation(e).x - this.cameraOffset.x;
+    this.dragStart.y = this.getEventLocation(e).y - this.cameraOffset.y;
   }
 
   @HostListener('document:mouseup')
@@ -81,8 +81,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   @HostListener('document:mousemove',  ['$event'])
   onPointerMove(e: MouseEvent) {
     if (this.isDragging) {
-      this.cameraOffset.x = e.x/this.cameraZoom - this.dragStart.x;
-      this.cameraOffset.y = e.y/this.cameraZoom - this.dragStart.y;
+      this.cameraOffset.x = e.x - this.dragStart.x;
+      this.cameraOffset.y = e.y - this.dragStart.y;
       this.update = true;
     }
   }
@@ -93,6 +93,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   @HostListener('document:wheel',  ['$event'])
   adjustZoom(e: WheelEvent) {
+    console.log(e);
     if (!this.isDragging) {
       this.zoomLevel += Math.sign(-e.deltaY);
       if (this.zoomLevel > MAX_ZOOM || this.zoomLevel < MIN_ZOOM) {
