@@ -50,17 +50,18 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.canvas.height = window.innerHeight;
 
       this.ctx.translate( this.cameraOffset.x, this.cameraOffset.y);
-      this.ctx.scale(this.cameraZoom, this.cameraZoom);
       this.ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
+
+      const size = Math.floor(2048 * this.cameraZoom)
 
       for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
           const image = this.images[i][j];
           if (image.complete) {
-            this.ctx.drawImage(image, i * 2048, j * 2048);
+            this.ctx.drawImage(image, i * size, j * size, size, size);
           } else {
             image.onload = () => {
-              this.ctx.drawImage(image, i * 2048, j * 2048);
+              this.ctx.drawImage(image, i * size, j * size, size, size);
             }
           }
         }
@@ -118,8 +119,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-e.deltaY))
       this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel);
 
-      this.cameraOffset.x = e.clientX - (e.clientX - this.cameraOffset.x) * zoomDelta;
-      this.cameraOffset.y = e.clientY - (e.clientY - this.cameraOffset.y) * zoomDelta;
+      this.cameraOffset.x = Math.floor(e.clientX - (e.clientX - this.cameraOffset.x) * zoomDelta);
+      this.cameraOffset.y = Math.floor(e.clientY - (e.clientY - this.cameraOffset.y) * zoomDelta);
 
       this.update = true;
     }
