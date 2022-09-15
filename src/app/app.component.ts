@@ -15,7 +15,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   cameraOffset: { x: number, y: number } = { x: 0, y: 0 };
-  zoomLevel: number = -3;
+  zoomLevel: number = 5;
   cameraZoom: number = Math.pow(ZOOM_FACTOR, this.zoomLevel);
   isDragging: boolean = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
@@ -31,8 +31,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.images.push([]);
       for (let j = 0; j < 4; j++) {
         const image: HTMLImageElement = new Image();
-        image.src = `assets/4/image-${i}-${j}.webp`;
-        image.loading = 'lazy';
         this.images[i].push(image);
       }
     }
@@ -52,11 +50,21 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.ctx.translate( this.cameraOffset.x, this.cameraOffset.y);
       this.ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
 
-      const size = Math.floor(2048 * this.cameraZoom)
+      const size = Math.floor(2048 * this.cameraZoom);
+      const min_visible_image_number = {
+        x: Math.max(Math.floor((0 - this.cameraOffset.x)/size), 0),
+        y: Math.max(Math.floor((0 - this.cameraOffset.y)/size), 0),
+      };
+      const max_visible_image_numbers = {
+        x: Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/size), 3),
+        y: Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/size), 3),
+      };
 
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
+
+      for (let i = min_visible_image_number.x; i <= max_visible_image_numbers.x; i++) {
+        for (let j = min_visible_image_number.y; j <= max_visible_image_numbers.y; j++) {
           const image = this.images[i][j];
+          if (!image.src) image.src = `assets/4/image-${i}-${j}.webp`;
           if (image.complete) {
             this.ctx.drawImage(image, i * size, j * size, size, size);
           } else {
@@ -66,13 +74,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           }
         }
       }
-      // if (this.image.complete) {
-      //   this.ctx.drawImage(this.image, 0, 0);
-      // } else {
-      //   this.image.onload = () => {
-      //     this.ctx.drawImage(this.image, 0, 0);
-      //   }
-      // }
 
       this.update = false;
     }
@@ -108,7 +109,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   @HostListener('document:wheel',  ['$event'])
   adjustZoom(e: WheelEvent) {
-    console.log(e);
     if (!this.isDragging) {
       this.zoomLevel += Math.sign(-e.deltaY);
       if (this.zoomLevel > MAX_ZOOM || this.zoomLevel < MIN_ZOOM) {
