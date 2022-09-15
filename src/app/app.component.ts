@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 
-const MAX_ZOOM = 5;
-const MIN_ZOOM = -5;
+const MAX_ZOOM_LEVEL = 5;
+const MIN_ZOOM_LEVEL = -5;
 
 const ZOOM_FACTOR = 1.5;
 
@@ -111,7 +111,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   adjustZoom(e: WheelEvent) {
     if (!this.isDragging) {
       this.zoomLevel += Math.sign(-e.deltaY);
-      if (this.zoomLevel > MAX_ZOOM || this.zoomLevel < MIN_ZOOM) {
+      if (this.zoomLevel > MAX_ZOOM_LEVEL || this.zoomLevel < MIN_ZOOM_LEVEL) {
         this.zoomLevel -= Math.sign(-e.deltaY);
         return;
       }
