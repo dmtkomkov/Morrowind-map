@@ -1,8 +1,16 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 
+enum ELayerSizes {
+  LAYER_SIZE_4 = 4,
+  LAYER_SIZE_8 = 8,
+}
+
+type ILayers = {
+  [key in ELayerSizes]: HTMLImageElement[][];
+}
+
 const MAX_ZOOM_LEVEL = 5;
 const MIN_ZOOM_LEVEL = -5;
-
 const ZOOM_FACTOR = 1.5;
 
 @Component({
@@ -15,23 +23,37 @@ export class AppComponent implements OnInit, AfterViewInit {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   cameraOffset: { x: number, y: number } = { x: 0, y: 0 };
-  zoomLevel: number = 5;
+  zoomLevel: number = -5;
   cameraZoom: number = Math.pow(ZOOM_FACTOR, this.zoomLevel);
   isDragging: boolean = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
   initialPinchDistance: number | null = null
   update: boolean = true;
-  images: HTMLImageElement[][] = [];
+  layers: ILayers = {
+    [ELayerSizes.LAYER_SIZE_8]: [],
+    [ELayerSizes.LAYER_SIZE_4]: [],
+  };
+  layerSize: ELayerSizes = ELayerSizes.LAYER_SIZE_4;
+
 
   ngOnInit(): void {
+
     this.canvas = this.canvasRef.nativeElement;
     this.ctx = this.canvas.getContext('2d')!;
 
-    for (let i = 0; i < 4; i++) {
-      this.images.push([]);
-      for (let j = 0; j < 4; j++) {
+    for (let i = 0; i < ELayerSizes.LAYER_SIZE_8; i++) {
+      this.layers[ELayerSizes.LAYER_SIZE_8].push([]);
+      for (let j = 0; j < ELayerSizes.LAYER_SIZE_8; j++) {
         const image: HTMLImageElement = new Image();
-        this.images[i].push(image);
+        this.layers[ELayerSizes.LAYER_SIZE_8][i].push(image);
+      }
+    }
+
+    for (let i = 0; i < ELayerSizes.LAYER_SIZE_4; i++) {
+      this.layers[ELayerSizes.LAYER_SIZE_4].push([]);
+      for (let j = 0; j < ELayerSizes.LAYER_SIZE_4; j++) {
+        const image: HTMLImageElement = new Image();
+        this.layers[ELayerSizes.LAYER_SIZE_4][i].push(image);
       }
     }
 
@@ -56,15 +78,14 @@ export class AppComponent implements OnInit, AfterViewInit {
         y: Math.max(Math.floor((0 - this.cameraOffset.y)/size), 0),
       };
       const max_visible_image_numbers = {
-        x: Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/size), 3),
-        y: Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/size), 3),
+        x: Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/size), this.layerSize - 1),
+        y: Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/size), this.layerSize - 1),
       };
-
 
       for (let i = min_visible_image_number.x; i <= max_visible_image_numbers.x; i++) {
         for (let j = min_visible_image_number.y; j <= max_visible_image_numbers.y; j++) {
-          const image = this.images[i][j];
-          if (!image.src) image.src = `assets/4/image-${i}-${j}.webp`;
+          const image = this.layers[this.layerSize][i][j];
+          if (!image.src) image.src = `assets/${this.layerSize}/image-${i}-${j}.webp`;
           if (image.complete) {
             this.ctx.drawImage(image, i * size, j * size, size, size);
           } else {
@@ -116,8 +137,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         return;
       }
 
+      if (this.zoomLevel > 1) {
+        this.layerSize = ELayerSizes.LAYER_SIZE_8;
+        this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel)/2;
+      } else if (this.zoomLevel <= 1) {
+        this.layerSize = ELayerSizes.LAYER_SIZE_4;
+        this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel);
+      }
+
       const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-e.deltaY))
-      this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel);
 
       this.cameraOffset.x = Math.floor(e.clientX - (e.clientX - this.cameraOffset.x) * zoomDelta);
       this.cameraOffset.y = Math.floor(e.clientY - (e.clientY - this.cameraOffset.y) * zoomDelta);
