@@ -169,4 +169,9 @@ export class AppComponent implements OnInit {
 
     this.update = true;
   }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.update = true;
+  }
 }
