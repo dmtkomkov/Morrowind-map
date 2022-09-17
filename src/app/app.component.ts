@@ -28,7 +28,6 @@ export class AppComponent implements OnInit {
   ctx: CanvasRenderingContext2D;
   cameraOffset: { x: number, y: number } = { x: window.innerWidth/2 - 700, y: 0 };
   zoomLevel: number = -3;
-  cameraZoom: number = Math.pow(ZOOM_FACTOR, this.zoomLevel);
   isDragging: boolean = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
   update: boolean = true;
@@ -63,21 +62,18 @@ export class AppComponent implements OnInit {
     if (this.update) {
       this.canvas.width = window.innerWidth;
       this.canvas.height = window.innerHeight;
-
       this.ctx.translate( this.cameraOffset.x, this.cameraOffset.y);
-      const tileSize = Math.floor(ORIGINAL_TILE_SIZE * this.cameraZoom);
 
-      const min_visible_image_number = {
-        x: Math.max(Math.floor((0 - this.cameraOffset.x)/tileSize), 0),
-        y: Math.max(Math.floor((0 - this.cameraOffset.y)/tileSize), 0),
-      };
-      const max_visible_image_numbers = {
-        x: Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/tileSize), this.layerSize - 1),
-        y: Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/tileSize), this.layerSize - 1),
-      };
+      const cameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.zoomLevel)/this.layerSize;
+      const tileSize = Math.floor(ORIGINAL_TILE_SIZE * cameraZoom);
 
-      for (let tileX = min_visible_image_number.x; tileX <= max_visible_image_numbers.x; tileX++) {
-        for (let tileY = min_visible_image_number.y; tileY <= max_visible_image_numbers.y; tileY++) {
+      const minVisibleTileX = Math.max(Math.floor((0 - this.cameraOffset.x)/tileSize), 0);
+      const minVisibleTileY = Math.max(Math.floor((0 - this.cameraOffset.y)/tileSize), 0);
+      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/tileSize), this.layerSize - 1);
+      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/tileSize), this.layerSize - 1);
+
+      for (let tileX = minVisibleTileX; tileX <= maxVisibleTileX; tileX++) {
+        for (let tileY = minVisibleTileY; tileY <= maxVisibleTileY; tileY++) {
           const image = this.layers[this.layerSize][tileX][tileY];
           if (!image.src) image.src = `assets/${this.layerSize}/image-${tileX}-${tileY}.webp`;
           this.drawImageTile(image, tileX, tileY, tileSize);
@@ -129,20 +125,12 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    if (this.zoomLevel > 4) {
-      this.layerSize = ELayerSize.LAYER_SIZE_16;
-    } else if (this.zoomLevel > 2) {
-      this.layerSize = ELayerSize.LAYER_SIZE_8;
-    } else if (this.zoomLevel > -1) {
-      this.layerSize = ELayerSize.LAYER_SIZE_4;
-    } else {
-      this.layerSize = ELayerSize.LAYER_SIZE_2;
-    }
-
-    this.cameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.zoomLevel)/this.layerSize;
+    if (this.zoomLevel > 4)         this.layerSize = ELayerSize.LAYER_SIZE_16;
+    else if (this.zoomLevel > 2)    this.layerSize = ELayerSize.LAYER_SIZE_8;
+    else if (this.zoomLevel > -1)   this.layerSize = ELayerSize.LAYER_SIZE_4;
+    else                            this.layerSize = ELayerSize.LAYER_SIZE_2;
 
     const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-event.deltaY));
-
     this.cameraOffset.x = Math.floor(event.clientX - (event.clientX - this.cameraOffset.x) * zoomDelta);
     this.cameraOffset.y = Math.floor(event.clientY - (event.clientY - this.cameraOffset.y) * zoomDelta);
 
