@@ -8,6 +8,7 @@ enum ELayerSize {
 }
 
 const ORIGINAL_TILE_SIZE = 2048;
+const ANIMATION_TIME = 100;
 
 type ILayers = {
   [key in ELayerSize]: HTMLImageElement[][];
@@ -26,7 +27,7 @@ export class AppComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  cameraOffset: { x: number, y: number } = { x: window.innerWidth/2 - 700, y: 0 };
+  cameraOffset: { x: number, y: number } = { x: 0, y: 0 };
   zoomLevel: number = -3;
   isDragging: boolean = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
@@ -37,7 +38,10 @@ export class AppComponent implements OnInit {
     [ELayerSize.LAYER_SIZE_4]: [],
     [ELayerSize.LAYER_SIZE_16]: [],
   };
-  layerSize: ELayerSize = ELayerSize.LAYER_SIZE_2;
+  startZoomTime: number = 0;
+  zoomLevelDelta: number = 0;
+  cameraOffsetDeltaX: number = 0;
+  cameraOffsetDeltaY: number = 0;
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
@@ -45,7 +49,7 @@ export class AppComponent implements OnInit {
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
       this.pushImages(layerSize as number);
     })
-    this.draw();
+    requestAnimationFrame( () => this.draw() );
   }
 
   private pushImages(size: ELayerSize) {
@@ -60,27 +64,50 @@ export class AppComponent implements OnInit {
 
   draw() {
     if (this.update) {
+      const updateTime: number = Math.min(Date.now() - (this.startZoomTime || 0), ANIMATION_TIME);
+
       this.canvas.width = window.innerWidth;
       this.canvas.height = window.innerHeight;
-      this.ctx.translate( this.cameraOffset.x, this.cameraOffset.y);
 
-      const cameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.zoomLevel)/this.layerSize;
-      const tileSize = Math.floor(ORIGINAL_TILE_SIZE * cameraZoom);
+      const cameraOffsetX = Math.floor(this.cameraOffset.x - this.cameraOffsetDeltaX * (updateTime/ANIMATION_TIME));
+      const cameraOffsetY = Math.floor(this.cameraOffset.y - this.cameraOffsetDeltaY * (updateTime/ANIMATION_TIME));
 
-      const minVisibleTileX = Math.max(Math.floor((0 - this.cameraOffset.x)/tileSize), 0);
-      const minVisibleTileY = Math.max(Math.floor((0 - this.cameraOffset.y)/tileSize), 0);
-      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/tileSize), this.layerSize - 1);
-      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/tileSize), this.layerSize - 1);
+      this.ctx.translate(cameraOffsetX, cameraOffsetY);
+
+      let layerSize: ELayerSize;
+      if (this.zoomLevel + this.zoomLevelDelta > 4) layerSize = ELayerSize.LAYER_SIZE_16;
+      else if (this.zoomLevel + this.zoomLevelDelta > 2) layerSize = ELayerSize.LAYER_SIZE_8;
+      else if (this.zoomLevel + this.zoomLevelDelta > -1) layerSize = ELayerSize.LAYER_SIZE_4;
+      else layerSize = ELayerSize.LAYER_SIZE_2;
+
+      const oldCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.zoomLevel)/layerSize;
+      const newCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.zoomLevel + this.zoomLevelDelta)/layerSize;
+      const cameraZoom = oldCameraZoom + (newCameraZoom - oldCameraZoom)*(updateTime/ANIMATION_TIME);
+      const tileSize = ORIGINAL_TILE_SIZE * cameraZoom;
+
+      const minVisibleTileX = Math.max(Math.floor((0 - cameraOffsetX)/tileSize), 0);
+      const minVisibleTileY = Math.max(Math.floor((0 - cameraOffsetY)/tileSize), 0);
+      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - cameraOffsetX)/tileSize), layerSize - 1);
+      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - cameraOffsetY)/tileSize), layerSize - 1);
 
       for (let tileX = minVisibleTileX; tileX <= maxVisibleTileX; tileX++) {
         for (let tileY = minVisibleTileY; tileY <= maxVisibleTileY; tileY++) {
-          const image = this.layers[this.layerSize][tileX][tileY];
-          if (!image.src) image.src = `assets/${this.layerSize}/image-${tileX}-${tileY}.webp`;
+          const image = this.layers[layerSize][tileX][tileY];
+          if (!image.src) image.src = `assets/${layerSize}/image-${tileX}-${tileY}.webp`;
           this.drawImageTile(image, tileX, tileY, tileSize);
         }
       }
 
-      this.update = false;
+      if (!(ANIMATION_TIME - updateTime > 0)) {
+        this.zoomLevel = this.zoomLevel + this.zoomLevelDelta;
+        this.startZoomTime = 0;
+        this.zoomLevelDelta = 0;
+        this.cameraOffset.x = cameraOffsetX;
+        this.cameraOffset.y = cameraOffsetY;
+        this.cameraOffsetDeltaX = 0;
+        this.cameraOffsetDeltaY = 0;
+        this.update = false;
+      }
     }
 
     requestAnimationFrame( () => this.draw() );
@@ -119,20 +146,29 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:wheel',  ['$event'])
   onScroll(event: WheelEvent) {
-    this.zoomLevel += Math.sign(-event.deltaY);
-    if (this.zoomLevel > MAX_ZOOM_LEVEL || this.zoomLevel < MIN_ZOOM_LEVEL) {
-      this.zoomLevel -= Math.sign(-event.deltaY);
+    if (this.startZoomTime > 0) {
       return;
     }
 
-    if (this.zoomLevel > 4)         this.layerSize = ELayerSize.LAYER_SIZE_16;
-    else if (this.zoomLevel > 2)    this.layerSize = ELayerSize.LAYER_SIZE_8;
-    else if (this.zoomLevel > -1)   this.layerSize = ELayerSize.LAYER_SIZE_4;
-    else                            this.layerSize = ELayerSize.LAYER_SIZE_2;
+    const oldZoomLevel = this.zoomLevel
+    const newZoomLevel = oldZoomLevel + Math.sign(-event.deltaY);
+    if (newZoomLevel > MAX_ZOOM_LEVEL || newZoomLevel < MIN_ZOOM_LEVEL) {
+      return;
+    }
+
+    this.startZoomTime = Date.now();
+
+    this.zoomLevelDelta = newZoomLevel - oldZoomLevel;
+
+    const oldCameraOffsetX = this.cameraOffset.x;
+    const oldCameraOffsetY = this.cameraOffset.y;
 
     const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-event.deltaY));
-    this.cameraOffset.x = Math.floor(event.clientX - (event.clientX - this.cameraOffset.x) * zoomDelta);
-    this.cameraOffset.y = Math.floor(event.clientY - (event.clientY - this.cameraOffset.y) * zoomDelta);
+    const newCameraOffsetX = Math.floor(event.clientX - (event.clientX - this.cameraOffset.x) * zoomDelta);
+    const newCameraOffsetY = Math.floor(event.clientY - (event.clientY - this.cameraOffset.y) * zoomDelta);
+
+    this.cameraOffsetDeltaX = oldCameraOffsetX - newCameraOffsetX;
+    this.cameraOffsetDeltaY = oldCameraOffsetY - newCameraOffsetY;
 
     this.update = true;
   }
