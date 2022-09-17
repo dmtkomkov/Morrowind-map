@@ -31,7 +31,6 @@ export class AppComponent implements OnInit {
   cameraZoom: number = Math.pow(ZOOM_FACTOR, this.zoomLevel);
   isDragging: boolean = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
-  initialPinchDistance: number | null = null
   update: boolean = true;
   layers: ILayers = {
     [ELayerSize.LAYER_SIZE_2]: [],
@@ -45,12 +44,12 @@ export class AppComponent implements OnInit {
     this.canvas = this.canvasRef.nativeElement;
     this.ctx = this.canvas.getContext('2d')!;
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
-      this.pushLayers(layerSize as number);
+      this.pushImages(layerSize as number);
     })
     this.draw();
   }
 
-  private pushLayers(size: ELayerSize) {
+  private pushImages(size: ELayerSize) {
     for (let i = 0; i < size; i++) {
       this.layers[size].push([]);
       for (let j = 0; j < size; j++) {
@@ -102,60 +101,51 @@ export class AppComponent implements OnInit {
   }
 
   @HostListener('document:mousedown', ['$event'])
-  onPointerDown(e: MouseEvent) {
+  onPointerDown(event: MouseEvent) {
     this.isDragging = true;
-    this.dragStart.x = this.getEventLocation(e).x - this.cameraOffset.x;
-    this.dragStart.y = this.getEventLocation(e).y - this.cameraOffset.y;
+    this.dragStart.x = event.clientX - this.cameraOffset.x;
+    this.dragStart.y = event.clientY - this.cameraOffset.y;
   }
 
   @HostListener('document:mouseup')
   onPointerUp() {
     this.isDragging = false;
-    this.initialPinchDistance = null;
   }
 
   @HostListener('document:mousemove',  ['$event'])
-  onPointerMove(e: MouseEvent) {
+  onPointerMove(event: MouseEvent) {
     if (this.isDragging) {
-      this.cameraOffset.x = e.x - this.dragStart.x;
-      this.cameraOffset.y = e.y - this.dragStart.y;
+      this.cameraOffset.x = event.clientX - this.dragStart.x;
+      this.cameraOffset.y = event.clientY - this.dragStart.y;
       this.update = true;
     }
-  }
-
-  getEventLocation(e: MouseEvent): { x: number, y: number } {
-    return  { x: e.clientX, y: e.clientY }
   }
 
   @HostListener('document:wheel',  ['$event'])
-  adjustZoom(e: WheelEvent) {
-    if (!this.isDragging) {
-      this.zoomLevel += Math.sign(-e.deltaY);
-      if (this.zoomLevel > MAX_ZOOM_LEVEL || this.zoomLevel < MIN_ZOOM_LEVEL) {
-        this.zoomLevel -= Math.sign(-e.deltaY);
-        return;
-      }
-
-      if (this.zoomLevel > 4) {
-        this.layerSize = ELayerSize.LAYER_SIZE_16;
-        this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel)/8
-      } else if (this.zoomLevel > 2) {
-        this.layerSize = ELayerSize.LAYER_SIZE_8;
-        this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel)/4;
-      } else if (this.zoomLevel > -1) {
-        this.layerSize = ELayerSize.LAYER_SIZE_4;
-        this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel)/2;
-      } else {
-        this.layerSize = ELayerSize.LAYER_SIZE_2;
-        this.cameraZoom = Math.pow(ZOOM_FACTOR, this.zoomLevel);
-      }
-
-      const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-e.deltaY))
-
-      this.cameraOffset.x = Math.floor(e.clientX - (e.clientX - this.cameraOffset.x) * zoomDelta);
-      this.cameraOffset.y = Math.floor(e.clientY - (e.clientY - this.cameraOffset.y) * zoomDelta);
-
-      this.update = true;
+  onScroll(event: WheelEvent) {
+    this.zoomLevel += Math.sign(-event.deltaY);
+    if (this.zoomLevel > MAX_ZOOM_LEVEL || this.zoomLevel < MIN_ZOOM_LEVEL) {
+      this.zoomLevel -= Math.sign(-event.deltaY);
+      return;
     }
+
+    if (this.zoomLevel > 4) {
+      this.layerSize = ELayerSize.LAYER_SIZE_16;
+    } else if (this.zoomLevel > 2) {
+      this.layerSize = ELayerSize.LAYER_SIZE_8;
+    } else if (this.zoomLevel > -1) {
+      this.layerSize = ELayerSize.LAYER_SIZE_4;
+    } else {
+      this.layerSize = ELayerSize.LAYER_SIZE_2;
+    }
+
+    this.cameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.zoomLevel)/this.layerSize;
+
+    const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-event.deltaY));
+
+    this.cameraOffset.x = Math.floor(event.clientX - (event.clientX - this.cameraOffset.x) * zoomDelta);
+    this.cameraOffset.y = Math.floor(event.clientY - (event.clientY - this.cameraOffset.y) * zoomDelta);
+
+    this.update = true;
   }
 }
