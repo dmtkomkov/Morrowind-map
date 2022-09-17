@@ -18,6 +18,11 @@ const MAX_ZOOM_LEVEL = 6;
 const MIN_ZOOM_LEVEL = -3;
 const ZOOM_FACTOR = 1.5;
 
+const LOCATIONS = [
+  { x: 1000, y: 1000, name: 'Some Town'},
+  { x: 1010, y: 1010, name: 'Some Town'}
+]
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -49,7 +54,7 @@ export class AppComponent implements OnInit {
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
       this.pushImages(layerSize as number);
     })
-    requestAnimationFrame( () => this.draw() );
+    this.draw();
   }
 
   private pushImages(size: ELayerSize) {
@@ -64,6 +69,8 @@ export class AppComponent implements OnInit {
 
   draw() {
     if (this.update) {
+      console.log('update');
+
       const updateTime: number = Math.min(Date.now() - (this.startZoomTime || 0), ANIMATION_TIME);
 
       this.canvas.width = window.innerWidth;
@@ -98,6 +105,8 @@ export class AppComponent implements OnInit {
         }
       }
 
+      this.drawLocations(cameraZoom * layerSize);
+
       if (!(ANIMATION_TIME - updateTime > 0)) {
         this.oldZoomLevel = this.newZoomLevel;
         this.startZoomTime = 0;
@@ -120,6 +129,16 @@ export class AppComponent implements OnInit {
         this.ctx.drawImage(image, tileX * tileSize, tileY * tileSize, tileSize, tileSize);
       }
     }
+  }
+
+  drawLocations(zoom: number) {
+    LOCATIONS.forEach((loc) => {
+      this.ctx.beginPath();
+      this.ctx.strokeStyle = 'gold';
+      this.ctx.lineWidth = 2;
+      this.ctx.rect(loc.x * zoom, loc.y * zoom, 10, 10);
+      this.ctx.stroke();
+    });
   }
 
   @HostListener('document:mousedown', ['$event'])
