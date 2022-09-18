@@ -69,8 +69,6 @@ export class AppComponent implements OnInit {
 
   draw() {
     if (this.update) {
-      console.log('update');
-
       const updateTime: number = Math.min(Date.now() - (this.startZoomTime || 0), ANIMATION_TIME);
 
       this.canvas.width = window.innerWidth;
