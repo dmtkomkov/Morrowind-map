@@ -20,7 +20,8 @@ const ZOOM_FACTOR = 1.5;
 
 const LOCATIONS = [
   { x: 1000, y: 1000, name: 'Some Town 1'},
-  { x: 1010, y: 1010, name: 'Some Town 2'}
+  { x: 1110, y: 1050, name: 'Some Town 2'},
+  { x: 1055.5, y: 968.6, name: 'The Temple'}
 ]
 
 @Component({
@@ -47,6 +48,10 @@ export class AppComponent implements OnInit {
   newZoomLevel: number = this.oldZoomLevel;
   cameraOffsetDeltaX: number = 0;
   cameraOffsetDeltaY: number = 0;
+  cameraZoom: number = 0;
+  layerSize: ELayerSize = ELayerSize.LAYER_SIZE_2;
+  mapX: string = 'unknown';
+  mapY: string = 'unknown';
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
@@ -79,31 +84,30 @@ export class AppComponent implements OnInit {
 
       this.ctx.translate(cameraOffsetX, cameraOffsetY);
 
-      let layerSize: ELayerSize;
-      if (this.newZoomLevel > 4) layerSize = ELayerSize.LAYER_SIZE_16;
-      else if (this.newZoomLevel > 2) layerSize = ELayerSize.LAYER_SIZE_8;
-      else if (this.newZoomLevel > -1) layerSize = ELayerSize.LAYER_SIZE_4;
-      else layerSize = ELayerSize.LAYER_SIZE_2;
+      if (this.newZoomLevel > 4) this.layerSize = ELayerSize.LAYER_SIZE_16;
+      else if (this.newZoomLevel > 2) this.layerSize = ELayerSize.LAYER_SIZE_8;
+      else if (this.newZoomLevel > -1) this.layerSize = ELayerSize.LAYER_SIZE_4;
+      else this.layerSize = ELayerSize.LAYER_SIZE_2;
 
-      const oldCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.oldZoomLevel)/layerSize;
-      const newCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.newZoomLevel)/layerSize;
-      const cameraZoom = oldCameraZoom + (newCameraZoom - oldCameraZoom) * (updateTime/ANIMATION_TIME);
-      const tileSize = ORIGINAL_TILE_SIZE * cameraZoom;
+      const oldCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.oldZoomLevel)/this.layerSize;
+      const newCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.newZoomLevel)/this.layerSize;
+      this.cameraZoom = oldCameraZoom + (newCameraZoom - oldCameraZoom) * (updateTime/ANIMATION_TIME);
+      const tileSize = ORIGINAL_TILE_SIZE * this.cameraZoom;
 
       const minVisibleTileX = Math.max(Math.floor((0 - cameraOffsetX)/tileSize), 0);
       const minVisibleTileY = Math.max(Math.floor((0 - cameraOffsetY)/tileSize), 0);
-      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - cameraOffsetX)/tileSize), layerSize - 1);
-      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - cameraOffsetY)/tileSize), layerSize - 1);
+      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - cameraOffsetX)/tileSize), this.layerSize - 1);
+      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - cameraOffsetY)/tileSize), this.layerSize - 1);
 
       for (let tileX = minVisibleTileX; tileX <= maxVisibleTileX; tileX++) {
         for (let tileY = minVisibleTileY; tileY <= maxVisibleTileY; tileY++) {
-          const image = this.layers[layerSize][tileX][tileY];
-          if (!image.src) image.src = `assets/${layerSize}/image-${tileX}-${tileY}.webp`;
+          const image = this.layers[this.layerSize][tileX][tileY];
+          if (!image.src) image.src = `assets/${this.layerSize}/image-${tileX}-${tileY}.webp`;
           this.drawImageTile(image, tileX, tileY, tileSize);
         }
       }
 
-      this.drawLocations(cameraZoom * layerSize);
+      this.drawLocations();
 
       if (ANIMATION_TIME - updateTime <= 0) {
         this.oldZoomLevel = this.newZoomLevel;
@@ -129,13 +133,17 @@ export class AppComponent implements OnInit {
     }
   }
 
-  drawLocations(zoom: number) {
+  drawLocations() {
+    const zoom: number = this.cameraZoom * this.layerSize;
     LOCATIONS.forEach((loc) => {
       this.ctx.beginPath();
       this.ctx.strokeStyle = 'gold';
       this.ctx.lineWidth = 2;
-      this.ctx.rect(loc.x * zoom, loc.y * zoom, 10, 10);
+      this.ctx.rect(loc.x * zoom - 5, loc.y * zoom - 5, 10, 10);
       this.ctx.stroke();
+      this.ctx.font = '16px Georgia';
+      this.ctx.fillStyle = 'gold';
+      this.ctx.fillText(loc.name, loc.x * zoom + 10, loc.y * zoom + 5);
     });
   }
 
@@ -153,6 +161,9 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:mousemove',  ['$event'])
   onPointerMove(event: MouseEvent) {
+    const zoom: number = this.cameraZoom * this.layerSize;
+    this.mapX = ((event.clientX - this.cameraOffset.x) / zoom).toFixed(1);
+    this.mapY = ((event.clientY - this.cameraOffset.y) / zoom).toFixed(1);
     if (this.isDragging) {
       this.cameraOffset.x = event.clientX - this.dragStart.x;
       this.cameraOffset.y = event.clientY - this.dragStart.y;

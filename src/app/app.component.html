@@ -1,1 +1,4 @@
 <canvas #canvas [class.grabbing]="isDragging"></canvas>
+<div class="coord-overlay" [class.grabbing]="isDragging">
+  x:{{ mapX }}  y:{{ mapY }}
+</div>
