@@ -19,8 +19,8 @@ const MIN_ZOOM_LEVEL = -3;
 const ZOOM_FACTOR = 1.5;
 
 const LOCATIONS = [
-  { x: 1000, y: 1000, name: 'Some Town'},
-  { x: 1010, y: 1010, name: 'Some Town'}
+  { x: 1000, y: 1000, name: 'Some Town 1'},
+  { x: 1010, y: 1010, name: 'Some Town 2'}
 ]
 
 @Component({
@@ -33,7 +33,7 @@ export class AppComponent implements OnInit {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   cameraOffset: { x: number, y: number } = { x: 0, y: 0 };
-  oldZoomLevel: number = -3;
+  oldZoomLevel: number = MIN_ZOOM_LEVEL;
   isDragging: boolean = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
   update: boolean = true;
@@ -69,7 +69,7 @@ export class AppComponent implements OnInit {
 
   draw() {
     if (this.update) {
-      const updateTime: number = Math.min(Date.now() - (this.startZoomTime || 0), ANIMATION_TIME);
+      const updateTime: number = Math.min(Date.now() - this.startZoomTime, ANIMATION_TIME);
 
       this.canvas.width = window.innerWidth;
       this.canvas.height = window.innerHeight;
@@ -105,7 +105,7 @@ export class AppComponent implements OnInit {
 
       this.drawLocations(cameraZoom * layerSize);
 
-      if (!(ANIMATION_TIME - updateTime > 0)) {
+      if (ANIMATION_TIME - updateTime <= 0) {
         this.oldZoomLevel = this.newZoomLevel;
         this.startZoomTime = 0;
         this.cameraOffset.x = cameraOffsetX;
@@ -174,15 +174,12 @@ export class AppComponent implements OnInit {
 
     this.startZoomTime = Date.now();
 
-    const oldCameraOffsetX = this.cameraOffset.x;
-    const oldCameraOffsetY = this.cameraOffset.y;
-
     const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-event.deltaY));
     const newCameraOffsetX = Math.floor(event.clientX - (event.clientX - this.cameraOffset.x) * zoomDelta);
     const newCameraOffsetY = Math.floor(event.clientY - (event.clientY - this.cameraOffset.y) * zoomDelta);
 
-    this.cameraOffsetDeltaX = oldCameraOffsetX - newCameraOffsetX;
-    this.cameraOffsetDeltaY = oldCameraOffsetY - newCameraOffsetY;
+    this.cameraOffsetDeltaX = this.cameraOffset.x - newCameraOffsetX;
+    this.cameraOffsetDeltaY = this.cameraOffset.y - newCameraOffsetY;
 
     this.update = true;
   }
