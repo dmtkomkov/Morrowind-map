@@ -136,14 +136,15 @@ export class AppComponent implements OnInit {
   drawLocations() {
     const zoom: number = this.cameraZoom * this.layerSize;
     LOCATIONS.forEach((loc) => {
+      const { x, y, name } = loc;
       this.ctx.beginPath();
-      this.ctx.strokeStyle = 'gold';
+      this.ctx.strokeStyle = '#ffcf12';
       this.ctx.lineWidth = 2;
-      this.ctx.rect(loc.x * zoom - 5, loc.y * zoom - 5, 10, 10);
+      this.ctx.rect(x * zoom - 4, y * zoom - 4, 7, 7);
       this.ctx.stroke();
-      this.ctx.font = '16px Georgia';
-      this.ctx.fillStyle = 'gold';
-      this.ctx.fillText(loc.name, loc.x * zoom + 10, loc.y * zoom + 5);
+      this.ctx.font = '16px MagicCards';
+      this.ctx.fillStyle = '#ffcf12';
+      this.ctx.fillText(name, x * zoom + 10, y * zoom + 4);
     });
   }
 
@@ -161,9 +162,7 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:mousemove',  ['$event'])
   onPointerMove(event: MouseEvent) {
-    const zoom: number = this.cameraZoom * this.layerSize;
-    this.mapX = ((event.clientX - this.cameraOffset.x) / zoom).toFixed(1);
-    this.mapY = ((event.clientY - this.cameraOffset.y) / zoom).toFixed(1);
+    this.updateCursorLocation(event);
     if (this.isDragging) {
       this.cameraOffset.x = event.clientX - this.dragStart.x;
       this.cameraOffset.y = event.clientY - this.dragStart.y;
@@ -193,6 +192,12 @@ export class AppComponent implements OnInit {
     this.cameraOffsetDeltaY = this.cameraOffset.y - newCameraOffsetY;
 
     this.update = true;
+  }
+
+  private updateCursorLocation(event: MouseEvent) {
+    const zoom: number = this.cameraZoom * this.layerSize;
+    this.mapX = ((event.clientX - this.cameraOffset.x) / zoom).toFixed(1);
+    this.mapY = ((event.clientY - this.cameraOffset.y) / zoom).toFixed(1);
   }
 
   @HostListener('window:resize', ['$event'])
