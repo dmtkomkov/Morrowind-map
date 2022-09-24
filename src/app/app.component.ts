@@ -169,7 +169,7 @@ export class AppComponent implements OnInit {
       const { x, y, name } = loc;
       if (x > startX && x < endX && y > startY && y < endY) {
         this.ctx.fillStyle = '#ffcf12';
-        this.ctx.strokeStyle = '#ffcf12';
+        this.ctx.strokeStyle = '#e7db91';
         this.ctx.font = '16px MagicCards';
 
         this.ctx.beginPath();
