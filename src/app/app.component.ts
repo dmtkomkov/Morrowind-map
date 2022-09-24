@@ -63,6 +63,7 @@ export class AppComponent implements OnInit {
   mapX: string = 'unknown';
   mapY: string = 'unknown';
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  townIcon: HTMLImageElement;
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
@@ -70,6 +71,8 @@ export class AppComponent implements OnInit {
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
       this.pushImages(layerSize as number);
     })
+    this.townIcon = new Image();
+    this.townIcon.src = 'assets/icons/MW-icon-map-City.webp'
     this.draw();
 
     // Draw location on top of visible tiles only
@@ -166,20 +169,30 @@ export class AppComponent implements OnInit {
         loc.items.forEach(item => {
           const { x, y, name } = item;
           if (x > startX && x < endX && y > startY && y < endY) {
-            this.ctx.fillStyle = '#ffcf12';
-            this.ctx.strokeStyle = '#e7db91';
-            this.ctx.font = '16px MagicCards';
-
-            this.ctx.beginPath();
-            this.ctx.lineWidth = 2;
-            this.ctx.rect(x * zoom - 4, y * zoom - 4, 7, 7);
-            this.ctx.stroke();
-
-            const textWidth = this.ctx.measureText(name).width + 10 ;
-            if (textWidth / zoom > endX - x) {
-              this.ctx.fillText(name, x * zoom - textWidth, y * zoom + 4);
+            if (this.townIcon.complete) {
+              this.ctx.drawImage(this.townIcon, x * zoom - 8, y * zoom - 8, 16, 16);
             } else {
-              this.ctx.fillText(name, x * zoom + 10, y * zoom + 4);
+              this.townIcon.onload = () => {
+                this.ctx.drawImage(this.townIcon, x * zoom - 8, y * zoom - 8, 16, 16);
+              }
+            }
+
+            this.ctx.font = '16px MagicCards';
+            const textWidth = this.ctx.measureText(name).width ;
+            if (textWidth / zoom > endX - x) {
+              this.ctx.globalAlpha = 0.2;
+              this.ctx.fillStyle = 'black';
+              this.ctx.fillRect(x * zoom - textWidth - 12,y * zoom - 8, textWidth + 6,16);
+              this.ctx.fillStyle = '#e7db91';
+              this.ctx.globalAlpha = 1.0;
+              this.ctx.fillText(name, x * zoom - textWidth - 8, y * zoom + 5);
+            } else {
+              this.ctx.globalAlpha = 0.2;
+              this.ctx.fillStyle = 'black';
+              this.ctx.fillRect(x * zoom + 8,y * zoom - 8, textWidth + 6,16);
+              this.ctx.fillStyle = '#e7db91';
+              this.ctx.globalAlpha = 1.0;
+              this.ctx.fillText(name, x * zoom + 12, y * zoom + 5);
             }
           }
         });
