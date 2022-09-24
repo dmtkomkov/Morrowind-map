@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { NgxPanZoomModule } from 'ngx-panzoom';
 
 import { AppComponent } from './app.component';
 
@@ -9,7 +8,7 @@ import { AppComponent } from './app.component';
     AppComponent
   ],
   imports: [
-    BrowserModule, NgxPanZoomModule
+    BrowserModule
   ],
   providers: [],
   bootstrap: [AppComponent]
