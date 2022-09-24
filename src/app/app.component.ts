@@ -22,8 +22,9 @@ type ILayers = {
   [key in ELayerSize]: IImageLoader[][];
 }
 
-const MAX_ZOOM_LEVEL = 6;
-const MIN_ZOOM_LEVEL = -3;
+const ZOOM_LEVEL_OFFSET = 4
+const MAX_ZOOM_LEVEL = 10;
+const MIN_ZOOM_LEVEL = 1;
 const ZOOM_FACTOR = 1.5;
 
 interface IImageLoader {
@@ -101,13 +102,13 @@ export class AppComponent implements OnInit {
 
       this.ctx.translate(this.cameraOffsetX, this.cameraOffsetY);
 
-      if (this.nextZoomLevel > 4) this.layerSize = ELayerSize.LAYER_SIZE_16;
-      else if (this.nextZoomLevel > 2) this.layerSize = ELayerSize.LAYER_SIZE_8;
-      else if (this.nextZoomLevel > -1) this.layerSize = ELayerSize.LAYER_SIZE_4;
+      if (this.nextZoomLevel > 8) this.layerSize = ELayerSize.LAYER_SIZE_16;
+      else if (this.nextZoomLevel > 6) this.layerSize = ELayerSize.LAYER_SIZE_8;
+      else if (this.nextZoomLevel > 3) this.layerSize = ELayerSize.LAYER_SIZE_4;
       else this.layerSize = ELayerSize.LAYER_SIZE_2;
 
-      const prevCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.prevZoomLevel)/this.layerSize;
-      const nextCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.nextZoomLevel)/this.layerSize;
+      const prevCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.prevZoomLevel - ZOOM_LEVEL_OFFSET)/this.layerSize;
+      const nextCameraZoom = 2 * Math.pow(ZOOM_FACTOR, this.nextZoomLevel - ZOOM_LEVEL_OFFSET)/this.layerSize;
       this.cameraZoom = prevCameraZoom + (nextCameraZoom - prevCameraZoom) * (updateTime/ANIMATION_TIME);
       const tileSize = ORIGINAL_TILE_SIZE * this.cameraZoom;
 

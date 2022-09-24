@@ -6,7 +6,7 @@ export enum ILocationType {
 export const LOCATIONS = [
   {
     type: ILocationType.TOWN,
-    zoomLevel: -3,
+    zoomLevel: 1,
     items: [
       { x: 1000, y: 1000, name: 'Some Town 1'},
       { x: 1110, y: 1050, name: 'Some Town 2'},
