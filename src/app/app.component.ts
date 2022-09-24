@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from "rxjs";
-import { LOCATIONS } from "./locations";
+import { Icons, ILocationType, LOCATIONS } from "./locations";
 
 enum ELayerSize {
   LAYER_SIZE_2 = 2,
@@ -63,7 +63,7 @@ export class AppComponent implements OnInit {
   mapX: string = 'unknown';
   mapY: string = 'unknown';
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0);
-  townIcon: HTMLImageElement;
+  icons: Icons;
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
@@ -71,8 +71,7 @@ export class AppComponent implements OnInit {
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
       this.pushImages(layerSize as number);
     })
-    this.townIcon = new Image();
-    this.townIcon.src = 'assets/icons/MW-icon-map-City.webp'
+    this.pushIcons();
     this.draw();
 
     // Draw location on top of visible tiles only
@@ -81,6 +80,17 @@ export class AppComponent implements OnInit {
         if (count === 0) this.drawLocations();
       },
     });
+  }
+
+  pushIcons() {
+    const iconCity = new Image();
+    const iconTown = new Image();
+    iconCity.src = 'assets/icons/MW-icon-map-City.webp';
+    iconTown.src = 'assets/icons/MW-icon-map-Town.webp';
+    this.icons = {
+      [ILocationType.CITY]: iconCity,
+      [ILocationType.TOWN]: iconTown,
+    }
   }
 
   private pushImages(size: ELayerSize) {
@@ -165,39 +175,42 @@ export class AppComponent implements OnInit {
     const endX: number = (window.innerWidth - this.cameraOffsetX) / zoom;
     const endY: number = (window.innerHeight - this.cameraOffsetY) / zoom;
     LOCATIONS.forEach((loc) => {
-      if (this.nextZoomLevel >= loc.zoomLevel) {
+      if (this.prevZoomLevel >= loc.zoomLevel) {
         loc.items.forEach(item => {
           const { x, y, name } = item;
+          const icon: HTMLImageElement = this.icons[loc.type]
           if (x > startX && x < endX && y > startY && y < endY) {
-            if (this.townIcon.complete) {
-              this.ctx.drawImage(this.townIcon, x * zoom - 8, y * zoom - 8, 16, 16);
+            if (icon.complete) {
+              this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
             } else {
-              this.townIcon.onload = () => {
-                this.ctx.drawImage(this.townIcon, x * zoom - 8, y * zoom - 8, 16, 16);
+              icon.onload = () => {
+                this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
               }
             }
 
             this.ctx.font = '16px MagicCards';
             const textWidth = this.ctx.measureText(name).width ;
             if (textWidth / zoom > endX - x) {
-              this.ctx.globalAlpha = 0.2;
-              this.ctx.fillStyle = 'black';
-              this.ctx.fillRect(x * zoom - textWidth - 12,y * zoom - 8, textWidth + 6,16);
-              this.ctx.fillStyle = '#e7db91';
-              this.ctx.globalAlpha = 1.0;
-              this.ctx.fillText(name, x * zoom - textWidth - 8, y * zoom + 5);
+              this.drawLocation(x * zoom, y * zoom, name, 'before')
             } else {
-              this.ctx.globalAlpha = 0.2;
-              this.ctx.fillStyle = 'black';
-              this.ctx.fillRect(x * zoom + 8,y * zoom - 8, textWidth + 6,16);
-              this.ctx.fillStyle = '#e7db91';
-              this.ctx.globalAlpha = 1.0;
-              this.ctx.fillText(name, x * zoom + 12, y * zoom + 5);
+              this.drawLocation(x * zoom, y * zoom, name, 'after')
             }
           }
         });
       }
     });
+  }
+
+  private drawLocation(x_c: number, y_c: number, text: string, pos: 'after' | 'before') {
+    const textWidth = this.ctx.measureText(text).width ;
+    this.ctx.globalAlpha = 0.3;
+    this.ctx.fillStyle = 'black';
+    const x_rec = pos === 'after'? x_c + 8 : x_c - textWidth - 12;
+    const x_text = pos === 'after'? x_c + 12: x_c - textWidth - 8;
+    this.ctx.fillRect(x_rec,y_c - 8, textWidth + 6,16);
+    this.ctx.fillStyle = '#e7db91';
+    this.ctx.globalAlpha = 1.0;
+    this.ctx.fillText(text, x_text, y_c + 5);
   }
 
   @HostListener('document:mousedown', ['$event'])
