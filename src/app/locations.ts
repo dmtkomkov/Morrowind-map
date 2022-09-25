@@ -2,7 +2,8 @@ export enum ELocationType {
   CITY,
   TOWN,
   FORT,
-  TELVANNI_TOWER
+  TELVANNI_TOWER,
+  VILLAGE,
 }
 
 export type Icons = {
@@ -84,11 +85,44 @@ export const LOCATIONS: ILocation[] = [
     src: 'assets/icons/MW-icon-map-Telvanni_Tower.webp',
     zoomLocs: [
       {
+        minZoom: 1,
+        locItems: [
+          { x: 1579.7, y: 1002.1, name: 'Tel Arun'},
+          { x: 1509.6, y: 720.4, name: 'Tel Mora'},
+          { x: 1575.2, y: 1135.6, name: 'Tel Fyr'},
+          { x: 1586.1, y: 1583.5, name: 'Tel Branora'},
+        ],
+      },
+      {
         minZoom: 3,
         locItems: [
           { x: 1670.9, y: 1043.3, name: 'Tel Naga'},
+          { x: 1425.1, y: 721.6, name: 'Tel Vos'},
         ],
       },
     ]
-  }
+  },
+  {
+    type: ELocationType.VILLAGE,
+    src: 'assets/icons/MW-icon-map-Village.webp',
+    zoomLocs: [
+      {
+        minZoom: 1,
+        locItems: [
+          { x: 1045.0, y: 1461.9, name: 'Seyda Neen'},
+          { x: 902.0, y: 1338.5, name: 'Hla Oad'},
+          { x: 853.9, y: 1077.5, name: 'Gnaar Mok'},
+          { x: 822.2, y: 634.9, name: 'Khuul'},
+          { x: 1327.3, y: 472.5, name: 'Dagon Fel'},
+          { x: 467.3, y: 358.3, name: 'Skaal Village'},
+        ],
+      },
+      {
+        minZoom: 5,
+        locItems: [
+          { x: 1461.7, y: 729.9, name: 'Vos'},
+        ],
+      },
+    ]
+  },
 ]

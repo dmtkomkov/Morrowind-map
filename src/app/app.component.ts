@@ -68,6 +68,7 @@ export class AppComponent implements OnInit {
     [ELocationType.TOWN]: new Image(),
     [ELocationType.FORT]: new Image(),
     [ELocationType.TELVANNI_TOWER]: new Image(),
+    [ELocationType.VILLAGE]: new Image(),
   };
 
   ngOnInit(): void {
@@ -76,9 +77,6 @@ export class AppComponent implements OnInit {
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
       this.pushTileImages(layerSize as ELayerSize);
     });
-    Object.values(ELocationType).filter((v) => isNaN(Number(v))).forEach(type => {
-      this.pushIcon(type as ELocationType);
-    })
     this.draw();
 
     // Draw location on top of visible tiles only
@@ -87,10 +85,6 @@ export class AppComponent implements OnInit {
         if (count === 0) this.drawLocations();
       },
     });
-  }
-
-  pushIcon(locationType: ELocationType) {
-    this.icons[locationType] = new Image();
   }
 
   private pushTileImages(size: ELayerSize) {
@@ -174,6 +168,7 @@ export class AppComponent implements OnInit {
     const startY: number = (0 - this.cameraOffsetY) / zoom;
     const endX: number = (window.innerWidth - this.cameraOffsetX) / zoom;
     const endY: number = (window.innerHeight - this.cameraOffsetY) / zoom;
+
     LOCATIONS.forEach((loc: ILocation) => {
       loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
         const minZoom = zoomLoc.minZoom || MIN_ZOOM_LEVEL;
@@ -181,23 +176,17 @@ export class AppComponent implements OnInit {
         if ((this.prevZoomLevel >= minZoom) && (this.prevZoomLevel <= maxZoom)) {
           zoomLoc.locItems.forEach((item: ILocItems) => {
             const { x, y, name } = item;
-            const icon: HTMLImageElement = this.icons[loc.type];
-            if (!icon.src) icon.src = loc.src;
             if (x > startX && x < endX && y > startY && y < endY) {
-              if (icon.complete) {
-                this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
-              } else {
-                icon.onload = () => {
-                  this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
-                }
-              }
+              const icon: HTMLImageElement = this.icons[loc.type];
+              if (!icon.src) icon.src = loc.src;
+              this.drawImageIcon(icon, x * zoom - 8, y * zoom - 8);
 
               this.ctx.font = '16px MagicCards';
               const textWidth = this.ctx.measureText(name).width ;
               if (textWidth / zoom > endX - x) {
-                this.drawLocation(x * zoom, y * zoom, name, 'before')
+                this.drawLocationText(x * zoom, y * zoom, name, 'before')
               } else {
-                this.drawLocation(x * zoom, y * zoom, name, 'after')
+                this.drawLocationText(x * zoom, y * zoom, name, 'after')
               }
             }
           });
@@ -206,7 +195,17 @@ export class AppComponent implements OnInit {
     });
   }
 
-  private drawLocation(x_c: number, y_c: number, text: string, pos: 'after' | 'before') {
+  private drawImageIcon(icon: HTMLImageElement, x: number, y: number) {
+    if (icon.complete) {
+      this.ctx.drawImage(icon, x, y, 16, 16);
+    } else {
+      icon.onload = () => {
+        this.ctx.drawImage(icon, x, y, 16, 16);
+      }
+    }
+  }
+
+  private drawLocationText(x_c: number, y_c: number, text: string, pos: 'after' | 'before') {
     const textWidth = this.ctx.measureText(text).width ;
     this.ctx.globalAlpha = 0.3;
     this.ctx.fillStyle = 'black';
