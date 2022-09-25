@@ -1,14 +1,17 @@
-export enum ILocationType {
+export enum ELocationType {
   CITY,
   TOWN,
+  FORT,
+  TELVANNI_TOWER
 }
 
 export type Icons = {
-  [key in ILocationType]: HTMLImageElement;
+  [key in ELocationType]: HTMLImageElement;
 }
 
 export interface ILocation {
-  type: ILocationType;
+  type: ELocationType;
+  src: string;
   zoomLocs: IZoomLocation[];
 }
 
@@ -26,7 +29,8 @@ export interface ILocItems {
 
 export const LOCATIONS: ILocation[] = [
   {
-    type: ILocationType.CITY,
+    type: ELocationType.CITY,
+    src: 'assets/icons/MW-icon-map-City.webp',
     zoomLocs : [
       {
         minZoom: 1,
@@ -46,7 +50,8 @@ export const LOCATIONS: ILocation[] = [
     ],
   },
   {
-    type: ILocationType.TOWN,
+    type: ELocationType.TOWN,
+    src: 'assets/icons/MW-icon-map-Town.webp',
     zoomLocs: [
       {
         minZoom: 1,
@@ -58,6 +63,30 @@ export const LOCATIONS: ILocation[] = [
           { x: 1093.3, y: 1400.0, name: 'Pelagiad'},
           { x: 1298.8, y: 1391.6, name: 'Suran'},
           { x: 315, y: 557.7, name: 'Raven Rock'},
+        ],
+      },
+    ]
+  },
+  {
+    type: ELocationType.FORT,
+    src: 'assets/icons/MW-icon-map-Fort.webp',
+    zoomLocs: [
+      {
+        minZoom: 3,
+        locItems: [
+          { x: 1671.0, y: 1072.0, name: 'Wolverine Hall'},
+        ],
+      },
+    ]
+  },
+  {
+    type: ELocationType.TELVANNI_TOWER,
+    src: 'assets/icons/MW-icon-map-Telvanni_Tower.webp',
+    zoomLocs: [
+      {
+        minZoom: 3,
+        locItems: [
+          { x: 1670.9, y: 1043.3, name: 'Tel Naga'},
         ],
       },
     ]

@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from "rxjs";
-import { Icons, ILocationType, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
+import { Icons, ILocation, ELocationType, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
 
 enum ELayerSize {
   LAYER_SIZE_2 = 2,
@@ -63,15 +63,22 @@ export class AppComponent implements OnInit {
   mapX: string = 'unknown';
   mapY: string = 'unknown';
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0);
-  icons: Icons;
+  icons: Icons = {
+    [ELocationType.CITY]: new Image(),
+    [ELocationType.TOWN]: new Image(),
+    [ELocationType.FORT]: new Image(),
+    [ELocationType.TELVANNI_TOWER]: new Image(),
+  };
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
     this.ctx = this.canvas.getContext('2d')!;
     Object.values(ELayerSize).filter((v) => !isNaN(Number(v))).forEach(layerSize => {
-      this.pushImages(layerSize as number);
+      this.pushTileImages(layerSize as ELayerSize);
+    });
+    Object.values(ELocationType).filter((v) => isNaN(Number(v))).forEach(type => {
+      this.pushIcon(type as ELocationType);
     })
-    this.pushIcons();
     this.draw();
 
     // Draw location on top of visible tiles only
@@ -82,18 +89,11 @@ export class AppComponent implements OnInit {
     });
   }
 
-  pushIcons() {
-    const iconCity = new Image();
-    const iconTown = new Image();
-    iconCity.src = 'assets/icons/MW-icon-map-City.webp';
-    iconTown.src = 'assets/icons/MW-icon-map-Town.webp';
-    this.icons = {
-      [ILocationType.CITY]: iconCity,
-      [ILocationType.TOWN]: iconTown,
-    }
+  pushIcon(locationType: ELocationType) {
+    this.icons[locationType] = new Image();
   }
 
-  private pushImages(size: ELayerSize) {
+  private pushTileImages(size: ELayerSize) {
     for (let i = 0; i < size; i++) {
       this.layers[size].push([]);
       for (let j = 0; j < size; j++) {
@@ -174,14 +174,15 @@ export class AppComponent implements OnInit {
     const startY: number = (0 - this.cameraOffsetY) / zoom;
     const endX: number = (window.innerWidth - this.cameraOffsetX) / zoom;
     const endY: number = (window.innerHeight - this.cameraOffsetY) / zoom;
-    LOCATIONS.forEach((loc) => {
+    LOCATIONS.forEach((loc: ILocation) => {
       loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
         const minZoom = zoomLoc.minZoom || MIN_ZOOM_LEVEL;
         const maxZoom = zoomLoc.maxZoom || MAX_ZOOM_LEVEL;
         if ((this.prevZoomLevel >= minZoom) && (this.prevZoomLevel <= maxZoom)) {
           zoomLoc.locItems.forEach((item: ILocItems) => {
             const { x, y, name } = item;
-            const icon: HTMLImageElement = this.icons[loc.type]
+            const icon: HTMLImageElement = this.icons[loc.type];
+            if (!icon.src) icon.src = loc.src;
             if (x > startX && x < endX && y > startY && y < endY) {
               if (icon.complete) {
                 this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
