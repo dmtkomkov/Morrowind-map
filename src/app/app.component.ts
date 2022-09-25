@@ -69,6 +69,7 @@ export class AppComponent implements OnInit {
     [ELocationType.FORT]: new Image(),
     [ELocationType.TELVANNI_TOWER]: new Image(),
     [ELocationType.VILLAGE]: new Image(),
+    [ELocationType.CAMP]: new Image(),
   };
 
   ngOnInit(): void {

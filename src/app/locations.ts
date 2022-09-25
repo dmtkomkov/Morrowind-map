@@ -4,6 +4,7 @@ export enum ELocationType {
   FORT,
   TELVANNI_TOWER,
   VILLAGE,
+  CAMP,
 }
 
 export type Icons = {
@@ -40,8 +41,7 @@ export const LOCATIONS: ILocation[] = [
           { x: 1011.1, y: 1240.4, name: 'Balmora'},
           { x: 1040.7, y: 971.2, name: 'Ald\'ruhn'},
         ],
-      },
-      {
+      }, {
         minZoom: 1,
         maxZoom: 2,
         locItems: [
@@ -49,8 +49,7 @@ export const LOCATIONS: ILocation[] = [
         ],
       },
     ],
-  },
-  {
+  }, {
     type: ELocationType.TOWN,
     src: 'assets/icons/MW-icon-map-Town.webp',
     zoomLocs: [
@@ -67,8 +66,7 @@ export const LOCATIONS: ILocation[] = [
         ],
       },
     ]
-  },
-  {
+  }, {
     type: ELocationType.FORT,
     src: 'assets/icons/MW-icon-map-Fort.webp',
     zoomLocs: [
@@ -79,8 +77,7 @@ export const LOCATIONS: ILocation[] = [
         ],
       },
     ]
-  },
-  {
+  }, {
     type: ELocationType.TELVANNI_TOWER,
     src: 'assets/icons/MW-icon-map-Telvanni_Tower.webp',
     zoomLocs: [
@@ -92,8 +89,7 @@ export const LOCATIONS: ILocation[] = [
           { x: 1575.2, y: 1135.6, name: 'Tel Fyr'},
           { x: 1586.1, y: 1583.5, name: 'Tel Branora'},
         ],
-      },
-      {
+      }, {
         minZoom: 3,
         locItems: [
           { x: 1670.9, y: 1043.3, name: 'Tel Naga'},
@@ -101,8 +97,7 @@ export const LOCATIONS: ILocation[] = [
         ],
       },
     ]
-  },
-  {
+  }, {
     type: ELocationType.VILLAGE,
     src: 'assets/icons/MW-icon-map-Village.webp',
     zoomLocs: [
@@ -114,13 +109,26 @@ export const LOCATIONS: ILocation[] = [
           { x: 853.9, y: 1077.5, name: 'Gnaar Mok'},
           { x: 822.2, y: 634.9, name: 'Khuul'},
           { x: 1327.3, y: 472.5, name: 'Dagon Fel'},
-          { x: 467.3, y: 358.3, name: 'Skaal Village'},
+          { x: 467.3, y: 358.3, name: 'Skaal'},
         ],
-      },
-      {
+      }, {
         minZoom: 5,
         locItems: [
           { x: 1461.7, y: 729.9, name: 'Vos'},
+        ],
+      },
+    ]
+  }, {
+    type: ELocationType.CAMP,
+    src: 'assets/icons/MW-icon-map-Camp.webp',
+    zoomLocs: [
+      {
+        minZoom: 1,
+        locItems: [
+          { x: 980.3, y: 596.4, name: 'Urshilaku'},
+          { x: 1458.4, y: 658.2, name: 'Ahemmusa'},
+          { x: 1390.1, y: 853.6, name: 'Zainab'},
+          { x: 1518.4, y: 1199.7, name: 'Erabenimsun'},
         ],
       },
     ]
