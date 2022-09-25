@@ -1,6 +1,7 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from "rxjs";
-import { Icons, ILocation, ELocationType, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
+import { ILocation, ELocationType, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
+import { Clipboard } from '@angular/cdk/clipboard';
 
 enum ELayerSize {
   LAYER_SIZE_2 = 2,
@@ -17,6 +18,10 @@ enum EImageStatus {
 
 const ORIGINAL_TILE_SIZE = 2048;
 const ANIMATION_TIME = 200;
+
+export type Icons = {
+  [key in ELocationType]: HTMLImageElement;
+}
 
 type ILayers = {
   [key in ELayerSize]: IImageLoader[][];
@@ -71,6 +76,10 @@ export class AppComponent implements OnInit {
     [ELocationType.VILLAGE]: new Image(),
     [ELocationType.CAMP]: new Image(),
   };
+
+  constructor(
+    private clipboard: Clipboard,
+  ) { }
 
   ngOnInit(): void {
     this.canvas = this.canvasRef.nativeElement;
@@ -273,5 +282,11 @@ export class AppComponent implements OnInit {
   @HostListener('window:resize', ['$event'])
   onResize() {
     this.update = true;
+  }
+
+  @HostListener('document:contextmenu', ['$event'])
+  onRightClick(event: MouseEvent) {
+    event.preventDefault();
+    this.clipboard.copy(`x: ${this.mapX}, y: ${this.mapY}`);
   }
 }

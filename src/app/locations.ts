@@ -7,10 +7,6 @@ export enum ELocationType {
   CAMP,
 }
 
-export type Icons = {
-  [key in ELocationType]: HTMLImageElement;
-}
-
 export interface ILocation {
   type: ELocationType;
   src: string;
