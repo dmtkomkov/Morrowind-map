@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject } from "rxjs";
-import { Icons, ILocationType, LOCATIONS } from "./locations";
+import { Icons, ILocationType, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
 
 enum ELayerSize {
   LAYER_SIZE_2 = 2,
@@ -175,29 +175,33 @@ export class AppComponent implements OnInit {
     const endX: number = (window.innerWidth - this.cameraOffsetX) / zoom;
     const endY: number = (window.innerHeight - this.cameraOffsetY) / zoom;
     LOCATIONS.forEach((loc) => {
-      if (this.prevZoomLevel >= loc.zoomLevel) {
-        loc.items.forEach(item => {
-          const { x, y, name } = item;
-          const icon: HTMLImageElement = this.icons[loc.type]
-          if (x > startX && x < endX && y > startY && y < endY) {
-            if (icon.complete) {
-              this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
-            } else {
-              icon.onload = () => {
+      loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
+        const minZoom = zoomLoc.minZoom || MIN_ZOOM_LEVEL;
+        const maxZoom = zoomLoc.maxZoom || MAX_ZOOM_LEVEL;
+        if ((this.prevZoomLevel >= minZoom) && (this.prevZoomLevel <= maxZoom)) {
+          zoomLoc.locItems.forEach((item: ILocItems) => {
+            const { x, y, name } = item;
+            const icon: HTMLImageElement = this.icons[loc.type]
+            if (x > startX && x < endX && y > startY && y < endY) {
+              if (icon.complete) {
                 this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
+              } else {
+                icon.onload = () => {
+                  this.ctx.drawImage(icon, x * zoom - 8, y * zoom - 8, 16, 16);
+                }
+              }
+
+              this.ctx.font = '16px MagicCards';
+              const textWidth = this.ctx.measureText(name).width ;
+              if (textWidth / zoom > endX - x) {
+                this.drawLocation(x * zoom, y * zoom, name, 'before')
+              } else {
+                this.drawLocation(x * zoom, y * zoom, name, 'after')
               }
             }
-
-            this.ctx.font = '16px MagicCards';
-            const textWidth = this.ctx.measureText(name).width ;
-            if (textWidth / zoom > endX - x) {
-              this.drawLocation(x * zoom, y * zoom, name, 'before')
-            } else {
-              this.drawLocation(x * zoom, y * zoom, name, 'after')
-            }
-          }
-        });
-      }
+          });
+        }
+      });
     });
   }
 
