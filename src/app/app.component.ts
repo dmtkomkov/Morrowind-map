@@ -3,6 +3,11 @@ import { BehaviorSubject } from "rxjs";
 import { ILocation, ELocationType, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
 import { Clipboard } from '@angular/cdk/clipboard';
 
+export interface ILoc {
+  x: number,
+  y: number;
+}
+
 enum ELayerSize {
   LAYER_SIZE_2 = 2,
   LAYER_SIZE_4 = 4,
@@ -46,11 +51,12 @@ export class AppComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  prevCameraOffset: { x: number, y: number } = { x: 0, y: 0 };
+  prevCameraOffset: ILoc = { x: 0, y: 0 };
+  nextCameraOffset: ILoc = { x: 0, y: 0 };
   prevZoomLevel: number = MIN_ZOOM_LEVEL;
   nextZoomLevel: number = this.prevZoomLevel;
   isDragging: boolean = false;
-  dragStart: { x: number, y: number } = { x: 0, y: 0 };
+  dragStart: ILoc = { x: 0, y: 0 };
   update: boolean = true;
   layers: ILayers = {
     [ELayerSize.LAYER_SIZE_2]: [],
@@ -62,8 +68,6 @@ export class AppComponent implements OnInit {
   cameraOffsetDeltaX: number = 0;
   cameraOffsetDeltaY: number = 0;
   cameraZoom: number = 0;
-  cameraOffsetX: number = 0;
-  cameraOffsetY: number = 0;
   layerSize: ELayerSize = ELayerSize.LAYER_SIZE_2;
   mapX: string = 'unknown';
   mapY: string = 'unknown';
@@ -75,6 +79,7 @@ export class AppComponent implements OnInit {
     [ELocationType.TELVANNI_TOWER]: new Image(),
     [ELocationType.VILLAGE]: new Image(),
     [ELocationType.CAMP]: new Image(),
+    [ELocationType.STRONGHOLD]: new Image(),
   };
 
   constructor(
@@ -114,10 +119,10 @@ export class AppComponent implements OnInit {
       this.canvas.width = window.innerWidth;
       this.canvas.height = window.innerHeight;
 
-      this.cameraOffsetX = Math.floor(this.prevCameraOffset.x - this.cameraOffsetDeltaX * (updateTime/ANIMATION_TIME));
-      this.cameraOffsetY = Math.floor(this.prevCameraOffset.y - this.cameraOffsetDeltaY * (updateTime/ANIMATION_TIME));
+      this.nextCameraOffset.x = Math.floor(this.prevCameraOffset.x - this.cameraOffsetDeltaX * (updateTime/ANIMATION_TIME));
+      this.nextCameraOffset.y = Math.floor(this.prevCameraOffset.y - this.cameraOffsetDeltaY * (updateTime/ANIMATION_TIME));
 
-      this.ctx.translate(this.cameraOffsetX, this.cameraOffsetY);
+      this.ctx.translate(this.nextCameraOffset.x, this.nextCameraOffset.y);
 
       if (this.nextZoomLevel > 8) this.layerSize = ELayerSize.LAYER_SIZE_16;
       else if (this.nextZoomLevel > 6) this.layerSize = ELayerSize.LAYER_SIZE_8;
@@ -129,10 +134,10 @@ export class AppComponent implements OnInit {
       this.cameraZoom = prevCameraZoom + (nextCameraZoom - prevCameraZoom) * (updateTime/ANIMATION_TIME);
       const tileSize = ORIGINAL_TILE_SIZE * this.cameraZoom;
 
-      const minVisibleTileX = Math.max(Math.floor((0 - this.cameraOffsetX)/tileSize), 0);
-      const minVisibleTileY = Math.max(Math.floor((0 - this.cameraOffsetY)/tileSize), 0);
-      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - this.cameraOffsetX)/tileSize), this.layerSize - 1);
-      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - this.cameraOffsetY)/tileSize), this.layerSize - 1);
+      const minVisibleTileX = Math.max(Math.floor((0 - this.nextCameraOffset.x)/tileSize), 0);
+      const minVisibleTileY = Math.max(Math.floor((0 - this.nextCameraOffset.y)/tileSize), 0);
+      const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - this.nextCameraOffset.x)/tileSize), this.layerSize - 1);
+      const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - this.nextCameraOffset.y)/tileSize), this.layerSize - 1);
 
       for (let tileX = minVisibleTileX; tileX <= maxVisibleTileX; tileX++) {
         for (let tileY = minVisibleTileY; tileY <= maxVisibleTileY; tileY++) {
@@ -145,8 +150,8 @@ export class AppComponent implements OnInit {
       if (ANIMATION_TIME - updateTime <= 0) {
         this.prevZoomLevel = this.nextZoomLevel;
         this.startZoomTime = 0;
-        this.prevCameraOffset.x = this.cameraOffsetX;
-        this.prevCameraOffset.y = this.cameraOffsetY;
+        this.prevCameraOffset.x = this.nextCameraOffset.x;
+        this.prevCameraOffset.y = this.nextCameraOffset.y;
         this.cameraOffsetDeltaX = 0;
         this.cameraOffsetDeltaY = 0;
         this.update = false;
@@ -174,10 +179,10 @@ export class AppComponent implements OnInit {
 
   drawLocations() {
     const zoom: number = this.cameraZoom * this.layerSize;
-    const startX: number = (0 - this.cameraOffsetX) / zoom;
-    const startY: number = (0 - this.cameraOffsetY) / zoom;
-    const endX: number = (window.innerWidth - this.cameraOffsetX) / zoom;
-    const endY: number = (window.innerHeight - this.cameraOffsetY) / zoom;
+    const startX: number = (0 - this.nextCameraOffset.x) / zoom;
+    const startY: number = (0 - this.nextCameraOffset.y) / zoom;
+    const endX: number = (window.innerWidth - this.nextCameraOffset.x) / zoom;
+    const endY: number = (window.innerHeight - this.nextCameraOffset.y) / zoom;
 
     LOCATIONS.forEach((loc: ILocation) => {
       loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
@@ -192,12 +197,7 @@ export class AppComponent implements OnInit {
               this.drawImageIcon(icon, x * zoom - 8, y * zoom - 8);
 
               this.ctx.font = '16px MagicCards';
-              const textWidth = this.ctx.measureText(name).width ;
-              if (textWidth / zoom > endX - x) {
-                this.drawLocationText(x * zoom, y * zoom, name, 'before')
-              } else {
-                this.drawLocationText(x * zoom, y * zoom, name, 'after')
-              }
+              this.drawLocationText(x * zoom, y * zoom, name);
             }
           });
         }
@@ -215,16 +215,14 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private drawLocationText(x_c: number, y_c: number, text: string, pos: 'after' | 'before') {
+  private drawLocationText(x_c: number, y_c: number, text: string) {
     const textWidth = this.ctx.measureText(text).width ;
     this.ctx.globalAlpha = 0.3;
     this.ctx.fillStyle = 'black';
-    const x_rec = pos === 'after'? x_c + 8 : x_c - textWidth - 12;
-    const x_text = pos === 'after'? x_c + 12: x_c - textWidth - 8;
-    this.ctx.fillRect(x_rec,y_c - 8, textWidth + 6,16);
+    this.ctx.fillRect(x_c + 8,y_c - 8, textWidth + 6,16);
     this.ctx.fillStyle = '#e7db91';
     this.ctx.globalAlpha = 1.0;
-    this.ctx.fillText(text, x_text, y_c + 5);
+    this.ctx.fillText(text, x_c + 12, y_c + 5);
   }
 
   @HostListener('document:mousedown', ['$event'])

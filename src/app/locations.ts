@@ -5,6 +5,7 @@ export enum ELocationType {
   TELVANNI_TOWER,
   VILLAGE,
   CAMP,
+  STRONGHOLD,
 }
 
 export interface ILocation {
@@ -59,6 +60,7 @@ export const LOCATIONS: ILocation[] = [
           { x: 1093.3, y: 1400.0, name: 'Pelagiad'},
           { x: 1298.8, y: 1391.6, name: 'Suran'},
           { x: 315, y: 557.7, name: 'Raven Rock'},
+          { x: 1144.8, y: 1582.0, name: 'Ebonheart'},
         ],
       },
     ]
@@ -86,10 +88,14 @@ export const LOCATIONS: ILocation[] = [
           { x: 1586.1, y: 1583.5, name: 'Tel Branora'},
         ],
       }, {
+        minZoom: 2,
+        locItems: [
+          { x: 1425.1, y: 721.6, name: 'Tel Vos'},
+        ],
+      }, {
         minZoom: 3,
         locItems: [
           { x: 1670.9, y: 1043.3, name: 'Tel Naga'},
-          { x: 1425.1, y: 721.6, name: 'Tel Vos'},
         ],
       },
     ]
@@ -106,9 +112,10 @@ export const LOCATIONS: ILocation[] = [
           { x: 822.2, y: 634.9, name: 'Khuul'},
           { x: 1327.3, y: 472.5, name: 'Dagon Fel'},
           { x: 467.3, y: 358.3, name: 'Skaal'},
+          { x: 746.7, y: 683.7, name: 'Ald Velothi'},
         ],
       }, {
-        minZoom: 5,
+        minZoom: 4,
         locItems: [
           { x: 1461.7, y: 729.9, name: 'Vos'},
         ],
@@ -125,6 +132,27 @@ export const LOCATIONS: ILocation[] = [
           { x: 1458.4, y: 658.2, name: 'Ahemmusa'},
           { x: 1390.1, y: 853.6, name: 'Zainab'},
           { x: 1518.4, y: 1199.7, name: 'Erabenimsun'},
+        ],
+      },
+    ]
+  }, {
+    type: ELocationType.STRONGHOLD,
+    src: 'assets/icons/MW-icon-map-Dunmer_Stronghold.webp',
+    zoomLocs: [
+      {
+        minZoom: 2,
+        locItems: [
+          { x: 821.3, y: 1001.9, name: 'Andasreth'},
+          { x: 783.9, y: 884.1, name: 'Berandas'},
+          { x: 1040.2, y: 691.2, name: 'Falasmaryon'},
+          { x: 1388.6, y: 978.0, name: 'Falensarano'},
+          { x: 912.6, y: 1198.7, name: 'Hlormaren'},
+          { x: 1554.9, y: 882.3, name: 'Indoranyon'},
+          { x: 1105.2, y: 713.8, name: 'Kogoruhn'},
+          { x: 1229.4, y: 1267.4, name: 'Marandus'},
+          { x: 1297.3, y: 586.2, name: 'Rotheran'},
+          { x: 1387.5, y: 1395.5, name: 'Telasero'},
+          { x: 1073.3, y: 587.4, name: 'Valenvaryon'},
         ],
       },
     ]
