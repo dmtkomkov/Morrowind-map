@@ -104,6 +104,7 @@ export const LOCATIONS: ILocation[] = [
         minZoom: 1,
         locItems: [
           { x: 842.6, y: 1522.7, name: 'Firemoth'},
+          { x: 406.0, y: 626.3, name: 'Frostmoth'},
         ],
       }, {
         minZoom: 2,
