@@ -57,10 +57,42 @@ export const LOCATIONS: ILocation[] = [
           { x: 752.8, y: 824.1, name: 'Gnisis'},
           { x: 1007.3, y: 781.3, name: 'Maar Gan'},
           { x: 1520.4, y: 1426.7, name: 'Molag Mar'},
-          { x: 1093.3, y: 1400.0, name: 'Pelagiad'},
           { x: 1298.8, y: 1391.6, name: 'Suran'},
           { x: 315, y: 557.7, name: 'Raven Rock'},
+        ],
+      }, {
+        minZoom: 1,
+        maxZoom: 5,
+        locItems: [
+          { x: 1102.1, y: 1403.5, name: 'Pelagiad'},
           { x: 1144.8, y: 1582.0, name: 'Ebonheart'},
+        ],
+      },
+    ]
+  }, {
+    type: ELocationType.VILLAGE,
+    src: 'assets/icons/MW-icon-map-Village.webp',
+    zoomLocs: [
+      {
+        minZoom: 1,
+        locItems: [
+          { x: 1045.0, y: 1461.9, name: 'Seyda Neen'},
+          { x: 902.0, y: 1338.5, name: 'Hla Oad'},
+          { x: 853.9, y: 1077.5, name: 'Gnaar Mok'},
+          { x: 822.2, y: 634.9, name: 'Khuul'},
+          { x: 1327.3, y: 472.5, name: 'Dagon Fel'},
+          { x: 467.3, y: 358.3, name: 'Skaal'},
+          { x: 746.7, y: 683.7, name: 'Ald Velothi'},
+        ],
+      }, {
+        minZoom: 4,
+        locItems: [
+          { x: 1461.7, y: 729.9, name: 'Vos'},
+        ],
+      }, {
+        minZoom: 6,
+        locItems: [
+          { x: 1093.3, y: 1400.0, name: 'Pelagiad'},
         ],
       },
     ]
@@ -69,9 +101,31 @@ export const LOCATIONS: ILocation[] = [
     src: 'assets/icons/MW-icon-map-Fort.webp',
     zoomLocs: [
       {
+        minZoom: 1,
+        locItems: [
+          { x: 842.6, y: 1522.7, name: 'Firemoth'},
+        ],
+      }, {
+        minZoom: 2,
+        locItems: [
+          { x: 1034.7, y: 1017.1, name: 'Buckmoth'},
+        ],
+      }, {
         minZoom: 3,
         locItems: [
-          { x: 1671.0, y: 1072.0, name: 'Wolverine Hall'},
+          { x: 1671.0, y: 1072.0, name: 'Wolverine'},
+          { x: 1069.6, y: 1255.4, name: 'Moonmoth'},
+        ],
+      }, {
+        minZoom: 5,
+        locItems: [
+          { x: 776.0, y: 831.1, name: 'Fort Darius'},
+        ],
+      },{
+        minZoom: 6,
+        locItems: [
+          { x: 1109.9, y: 1403.4, name: 'Pelagiad'},
+          { x: 1145.2, y: 1577.3, name: 'Hawkmoth'},
         ],
       },
     ]
@@ -96,28 +150,6 @@ export const LOCATIONS: ILocation[] = [
         minZoom: 3,
         locItems: [
           { x: 1670.9, y: 1043.3, name: 'Tel Naga'},
-        ],
-      },
-    ]
-  }, {
-    type: ELocationType.VILLAGE,
-    src: 'assets/icons/MW-icon-map-Village.webp',
-    zoomLocs: [
-      {
-        minZoom: 1,
-        locItems: [
-          { x: 1045.0, y: 1461.9, name: 'Seyda Neen'},
-          { x: 902.0, y: 1338.5, name: 'Hla Oad'},
-          { x: 853.9, y: 1077.5, name: 'Gnaar Mok'},
-          { x: 822.2, y: 634.9, name: 'Khuul'},
-          { x: 1327.3, y: 472.5, name: 'Dagon Fel'},
-          { x: 467.3, y: 358.3, name: 'Skaal'},
-          { x: 746.7, y: 683.7, name: 'Ald Velothi'},
-        ],
-      }, {
-        minZoom: 4,
-        locItems: [
-          { x: 1461.7, y: 729.9, name: 'Vos'},
         ],
       },
     ]
