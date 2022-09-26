@@ -51,8 +51,8 @@ export class AppComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  prevCameraOffset: ILoc = { x: 0, y: 0 };
-  nextCameraOffset: ILoc = { x: 0, y: 0 };
+  prevCameraOffset: ILoc = { x: 0, y: -120 };
+  nextCameraOffset: ILoc = { x: 0, y: -120 };
   prevZoomLevel: number = MIN_ZOOM_LEVEL;
   nextZoomLevel: number = this.prevZoomLevel;
   isDragging: boolean = false;
