@@ -1,5 +1,6 @@
 html, body
 {
+  user-select: none;
   height: 100vh;
   margin: 0;
   padding: 0;
