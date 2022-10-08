@@ -197,7 +197,7 @@ export class AppComponent implements OnInit {
               this.drawImageIcon(icon, x * zoom - 8, y * zoom - 8);
 
               this.ctx.font = '16px MagicCards';
-              this.drawLocationText(x * zoom, y * zoom, name);
+              this.drawLocationText(x * zoom + 8, y * zoom - 8, name);
             }
           });
         }
@@ -219,10 +219,10 @@ export class AppComponent implements OnInit {
     const textWidth = this.ctx.measureText(text).width ;
     this.ctx.globalAlpha = 0.3;
     this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(x_c + 8,y_c - 8, textWidth + 6,16);
+    this.ctx.fillRect(x_c,y_c, textWidth + 6,16);
     this.ctx.fillStyle = '#e7db91';
     this.ctx.globalAlpha = 1.0;
-    this.ctx.fillText(text, x_c + 12, y_c + 5);
+    this.ctx.fillText(text, x_c + 4, y_c + 13);
   }
 
   @HostListener('document:mousedown', ['$event'])
