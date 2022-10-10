@@ -1,5 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
-import { ELocationType, ILocation, ILocItems, IZoomLocation, LOCATIONS } from "./locations";
+import { ELocationType, ILocation, ILocItem, IZoomLocation, LOCATIONS } from "./locations";
 import { BehaviorSubject } from "rxjs";
 
 enum ELayerSize {
@@ -140,7 +140,7 @@ export class MapService {
         const minZoom = zoomLoc.minZoom || minZoomLevel;
         const maxZoom = zoomLoc.maxZoom || maxZoomLevel;
         if ((zoomLevel >= minZoom) && (zoomLevel <= maxZoom)) {
-          zoomLoc.locItems.forEach((item: ILocItems) => {
+          zoomLoc.locItems.forEach((item: ILocItem) => {
             const { x, y, name } = item;
             if (x > startX && x < endX && y > startY && y < endY) {
               const icon: HTMLImageElement = this.icons[loc.type];

@@ -15,12 +15,12 @@ export interface ILocation {
 }
 
 export interface IZoomLocation {
-  locItems: ILocItems[];
+  locItems: ILocItem[];
   minZoom?: number;
   maxZoom?: number;
 }
 
-export interface ILocItems {
+export interface ILocItem {
   x: number;
   y: number;
   name: string;
