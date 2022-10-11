@@ -1,20 +1,17 @@
 import { ElementRef, Injectable } from '@angular/core';
 import { ELocationType, ILocation, ILocItem, IZoomLocation, LOCATIONS } from "./locations";
 import { BehaviorSubject } from "rxjs";
-import { ILoc } from "./app.component";
-
-enum ELayerSize {
-  LAYER_SIZE_2 = 2,
-  LAYER_SIZE_4 = 4,
-  LAYER_SIZE_8 = 8,
-  LAYER_SIZE_16 = 16
-}
-
-enum EImageStatus {
-  INIT,
-  LOADING,
-  LOADED,
-}
+import {
+  DEFAULT_ICONS,
+  DEFAULT_LAYERS,
+  DEFAULT_OFFSET,
+  ELayerSize,
+  ILoc,
+  MAX_ZOOM_LEVEL,
+  MIN_ZOOM_LEVEL,
+  ZOOM_FACTOR,
+  ZOOM_LEVEL_OFFSET
+} from "./app.const";
 
 const ORIGINAL_TILE_SIZE = 2048;
 
@@ -22,13 +19,8 @@ export type Icons = {
   [key in ELocationType]: HTMLImageElement;
 }
 
-interface IImageLoader {
-  image: HTMLImageElement;
-  status: EImageStatus;
-}
-
 type ILayers = {
-  [key in ELayerSize]: IImageLoader[][];
+  [key in ELayerSize]: HTMLImageElement[][];
 }
 
 @Injectable({
@@ -39,22 +31,9 @@ export class MapService {
   private ctx: CanvasRenderingContext2D;
   private layerSize: ELayerSize = ELayerSize.LAYER_SIZE_2;
   cameraZoom: number = 0;
-  cameraOffset: ILoc = { x:0, y:0 };
-  private layers: ILayers = { // TODO: const
-    [ELayerSize.LAYER_SIZE_2]: [],
-    [ELayerSize.LAYER_SIZE_8]: [],
-    [ELayerSize.LAYER_SIZE_4]: [],
-    [ELayerSize.LAYER_SIZE_16]: [],
-  };
-  private icons: Icons = { // TODO: const
-    [ELocationType.CITY]: new Image(),
-    [ELocationType.TOWN]: new Image(),
-    [ELocationType.FORT]: new Image(),
-    [ELocationType.TELVANNI_TOWER]: new Image(),
-    [ELocationType.VILLAGE]: new Image(),
-    [ELocationType.CAMP]: new Image(),
-    [ELocationType.STRONGHOLD]: new Image(),
-  };
+  cameraOffset: ILoc = { ...DEFAULT_OFFSET };
+  private layers: ILayers = { ...DEFAULT_LAYERS };
+  private icons: Icons = { ...DEFAULT_ICONS };
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0); // TODO: calculate max number
   x: string = 'unknown';
   y: string = 'unknown';
@@ -73,8 +52,7 @@ export class MapService {
     for (let i = 0; i < size; i++) {
       this.layers[size].push([]);
       for (let j = 0; j < size; j++) {
-        const image: HTMLImageElement = new Image();
-        this.layers[size][i].push({ image, status: EImageStatus.INIT });
+        this.layers[size][i].push(new Image());
       }
     }
   }
@@ -92,9 +70,9 @@ export class MapService {
     this.ctx.translate(this.cameraOffset.x, this.cameraOffset.y);
   }
 
-  setCameraZoom(prevZoomLevel: number, nextZoomLevel: number, zoomFactor: number, inc: number) {
-    const prevCameraZoom = 2 * Math.pow(zoomFactor, prevZoomLevel)/this.layerSize;
-    const nextCameraZoom = 2 * Math.pow(zoomFactor, nextZoomLevel)/this.layerSize;
+  setCameraZoom(prevZoomLevel: number, nextZoomLevel: number, inc: number) {
+    const prevCameraZoom = 2 * Math.pow(ZOOM_FACTOR, prevZoomLevel - ZOOM_LEVEL_OFFSET)/this.layerSize;
+    const nextCameraZoom = 2 * Math.pow(ZOOM_FACTOR, nextZoomLevel - ZOOM_LEVEL_OFFSET)/this.layerSize;
     this.cameraZoom = prevCameraZoom + (nextCameraZoom - prevCameraZoom) * inc;
   }
 
@@ -107,28 +85,26 @@ export class MapService {
 
     for (let tileX = minVisibleTileX; tileX <= maxVisibleTileX; tileX++) {
       for (let tileY = minVisibleTileY; tileY <= maxVisibleTileY; tileY++) {
-        const imageLoader: IImageLoader = this.layers[this.layerSize][tileX][tileY];
-        if (!imageLoader.image.src) imageLoader.image.src = `assets/${this.layerSize}/image-${tileX}-${tileY}.webp`;
-        this.drawImageTile(imageLoader, tileX, tileY, tileSize);
+        const image: HTMLImageElement = this.layers[this.layerSize][tileX][tileY];
+        this.drawImageTile(image, tileX, tileY, tileSize);
       }
     }
   }
 
-  drawImageTile(imageLoader: IImageLoader, tileX: number, tileY: number, tileSize: number) {
-    if (imageLoader.status === EImageStatus.LOADED) {
-      this.ctx.drawImage(imageLoader.image, tileX * tileSize, tileY * tileSize, tileSize, tileSize);
-    } else if (imageLoader.status === EImageStatus.INIT) {
-      imageLoader.status = EImageStatus.LOADING;
+  private drawImageTile(image: HTMLImageElement, tileX: number, tileY: number, tileSize: number) {
+    if (image.src && image.complete) {
+      this.ctx.drawImage(image, tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+    } else if (!image.src) {
+      image.src = `assets/${this.layerSize}/image-${tileX}-${tileY}.webp`;
       this.imgLoadingCount.next(this.imgLoadingCount.value + 1);
-      imageLoader.image.onload = () => {
-        imageLoader.status = EImageStatus.LOADED;
-        this.ctx.drawImage(imageLoader.image, tileX * tileSize, tileY * tileSize, tileSize, tileSize);
+      image.onload = () => {
+        this.ctx.drawImage(image, tileX * tileSize, tileY * tileSize, tileSize, tileSize);
         this.imgLoadingCount.next(this.imgLoadingCount.value - 1);
       }
     }
   }
 
-  drawLocations(minZoomLevel: number, maxZoomLevel: number, zoomLevel: number) {
+  drawLocations(zoomLevel: number) {
     const zoom: number = this.cameraZoom * this.layerSize;
     const startX: number = (0 - this.cameraOffset.x) / zoom;
     const startY: number = (0 - this.cameraOffset.y) / zoom;
@@ -141,8 +117,8 @@ export class MapService {
 
     LOCATIONS.forEach((loc: ILocation) => {
       loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
-        const minZoom = zoomLoc.minZoom || minZoomLevel;
-        const maxZoom = zoomLoc.maxZoom || maxZoomLevel;
+        const minZoom = zoomLoc.minZoom || MIN_ZOOM_LEVEL;
+        const maxZoom = zoomLoc.maxZoom || MAX_ZOOM_LEVEL;
         if ((zoomLevel >= minZoom) && (zoomLevel <= maxZoom)) {
           zoomLoc.locItems.forEach((item: ILocItem) => {
             const { x, y, name } = item;

@@ -1,18 +1,7 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MapService } from "./map.service";
-
-export interface ILoc {
-  x: number,
-  y: number;
-}
-
-const ANIMATION_TIME = 200;
-
-const ZOOM_LEVEL_OFFSET = 4
-const MAX_ZOOM_LEVEL = 10;
-const MIN_ZOOM_LEVEL = 1;
-const ZOOM_FACTOR = 1.5;
+import { ANIMATION_TIME, DEFAULT_OFFSET, ILoc, MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL, ZOOM_FACTOR } from "./app.const";
 
 @Component({
   selector: 'app-root',
@@ -22,8 +11,8 @@ const ZOOM_FACTOR = 1.5;
 export class AppComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
 
-  prevCameraOffset: ILoc = { x: 0, y: -120 };
-  nextCameraOffset: ILoc = { x: 0, y: -120 };
+  prevCameraOffset: ILoc = { ...DEFAULT_OFFSET };
+  nextCameraOffset: ILoc = { ...DEFAULT_OFFSET };
   prevZoomLevel: number = MIN_ZOOM_LEVEL;
   nextZoomLevel: number = this.prevZoomLevel;
   isDragging: boolean = false;
@@ -44,7 +33,7 @@ export class AppComponent implements OnInit {
     // Draw location on top of visible tiles only
     this.map.imgLoadingCount.subscribe( {
       next: (count: number) => {
-        if (count === 0) this.map.drawLocations(MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL, this.prevZoomLevel);
+        if (count === 0) this.map.drawLocations(this.prevZoomLevel);
       },
     });
   }
@@ -58,18 +47,17 @@ export class AppComponent implements OnInit {
 
       const inc = updateTime/ANIMATION_TIME;
       this.map.setCameraOffset(this.prevCameraOffset, this.nextCameraOffset, inc);
-      this.map.setCameraZoom(this.prevZoomLevel - ZOOM_LEVEL_OFFSET, this.nextZoomLevel - ZOOM_LEVEL_OFFSET, ZOOM_FACTOR, inc);
+      this.map.setCameraZoom(this.prevZoomLevel, this.nextZoomLevel, inc);
       this.map.drawImageTiles();
 
       if (ANIMATION_TIME - updateTime <= 0) {
         this.prevZoomLevel = this.nextZoomLevel;
         this.startZoomTime = 0;
-        this.prevCameraOffset.x = this.nextCameraOffset.x;
-        this.prevCameraOffset.y = this.nextCameraOffset.y;
+        this.prevCameraOffset = { ...this.nextCameraOffset };
         this.update = false;
       }
 
-      this.map.drawLocations(MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL, this.prevZoomLevel);
+      this.map.drawLocations(this.prevZoomLevel);
     }
 
     requestAnimationFrame( () => this.draw() );
