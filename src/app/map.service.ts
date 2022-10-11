@@ -1,6 +1,7 @@
 import { ElementRef, Injectable } from '@angular/core';
 import { ELocationType, ILocation, ILocItem, IZoomLocation, LOCATIONS } from "./locations";
 import { BehaviorSubject } from "rxjs";
+import { ILoc } from "./app.component";
 
 enum ELayerSize {
   LAYER_SIZE_2 = 2,
@@ -38,6 +39,7 @@ export class MapService {
   private ctx: CanvasRenderingContext2D;
   private layerSize: ELayerSize = ELayerSize.LAYER_SIZE_2;
   cameraZoom: number = 0;
+  cameraOffset: ILoc = { x:0, y:0 };
   private layers: ILayers = { // TODO: const
     [ELayerSize.LAYER_SIZE_2]: [],
     [ELayerSize.LAYER_SIZE_8]: [],
@@ -84,8 +86,10 @@ export class MapService {
     else this.layerSize = ELayerSize.LAYER_SIZE_2;
   }
 
-  setCameraOffset(x: number, y: number) {
-    this.ctx.translate(x, y);
+  setCameraOffset(prevCameraOffset: ILoc, nextCameraOffset: ILoc, inc: number) {
+    this.cameraOffset.x = prevCameraOffset.x + (nextCameraOffset.x - prevCameraOffset.x) * inc;
+    this.cameraOffset.y = prevCameraOffset.y + (nextCameraOffset.y - prevCameraOffset.y) * inc;
+    this.ctx.translate(this.cameraOffset.x, this.cameraOffset.y);
   }
 
   setCameraZoom(prevZoomLevel: number, nextZoomLevel: number, zoomFactor: number, inc: number) {
@@ -94,12 +98,12 @@ export class MapService {
     this.cameraZoom = prevCameraZoom + (nextCameraZoom - prevCameraZoom) * inc;
   }
 
-  drawImageTiles(offsetX: number, offsetY: number) {
+  drawImageTiles() {
     const tileSize = ORIGINAL_TILE_SIZE * this.cameraZoom;
-    const minVisibleTileX = Math.max(Math.floor((0 - offsetX)/tileSize), 0);
-    const minVisibleTileY = Math.max(Math.floor((0 - offsetY)/tileSize), 0);
-    const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - offsetX)/tileSize), this.layerSize - 1);
-    const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - offsetY)/tileSize), this.layerSize - 1);
+    const minVisibleTileX = Math.max(Math.floor((0 - this.cameraOffset.x)/tileSize), 0);
+    const minVisibleTileY = Math.max(Math.floor((0 - this.cameraOffset.y)/tileSize), 0);
+    const maxVisibleTileX = Math.min(Math.floor((window.innerWidth - this.cameraOffset.x)/tileSize), this.layerSize - 1);
+    const maxVisibleTileY = Math.min(Math.floor((window.innerHeight - this.cameraOffset.y)/tileSize), this.layerSize - 1);
 
     for (let tileX = minVisibleTileX; tileX <= maxVisibleTileX; tileX++) {
       for (let tileY = minVisibleTileY; tileY <= maxVisibleTileY; tileY++) {
@@ -124,12 +128,12 @@ export class MapService {
     }
   }
 
-  drawLocations(offsetX: number, offsetY: number, minZoomLevel: number, maxZoomLevel: number, zoomLevel: number) {
+  drawLocations(minZoomLevel: number, maxZoomLevel: number, zoomLevel: number) {
     const zoom: number = this.cameraZoom * this.layerSize;
-    const startX: number = (0 - offsetX) / zoom;
-    const startY: number = (0 - offsetY) / zoom;
-    const endX: number = (window.innerWidth - offsetX) / zoom;
-    const endY: number = (window.innerHeight - offsetY) / zoom;
+    const startX: number = (0 - this.cameraOffset.x) / zoom;
+    const startY: number = (0 - this.cameraOffset.y) / zoom;
+    const endX: number = (window.innerWidth - this.cameraOffset.x) / zoom;
+    const endY: number = (window.innerHeight - this.cameraOffset.y) / zoom;
 
     // this.arc = new Path2D();
     // this.arc.arc(1000 * zoom, 1000 * zoom, 2 * zoom, 0, 2 * Math.PI);
@@ -166,20 +170,20 @@ export class MapService {
     }
   }
 
-  private drawLocationText(x_c: number, y_c: number, text: string) {
+  private drawLocationText(x: number, y: number, text: string) {
     const textWidth = this.ctx.measureText(text).width ;
     this.ctx.globalAlpha = 0.3;
     this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(x_c,y_c, textWidth + 6,16);
+    this.ctx.fillRect(x, y, textWidth + 6,16);
     this.ctx.fillStyle = '#e7db91';
     this.ctx.globalAlpha = 1.0;
-    this.ctx.fillText(text, x_c + 4, y_c + 13);
+    this.ctx.fillText(text, x + 4, y + 13);
   }
 
-  updateCursorLocation(event: MouseEvent, x: number, y: number) {
+  updateCursorLocation(event: MouseEvent) {
     const zoom: number = this.cameraZoom * this.layerSize;
-    this.x = ((event.clientX - x) / zoom).toFixed(1);
-    this.y = ((event.clientY - y) / zoom).toFixed(1);
+    this.x = ((event.clientX - this.cameraOffset.x) / zoom).toFixed(1);
+    this.y = ((event.clientY - this.cameraOffset.y) / zoom).toFixed(1);
   }
 
   clean() {

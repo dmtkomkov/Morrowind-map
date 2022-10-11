@@ -30,7 +30,6 @@ export class AppComponent implements OnInit {
   dragStart: ILoc = { x: 0, y: 0 };
   update: boolean = true;
   startZoomTime: number = 0;
-  cameraOffsetDelta: ILoc = { x: 0, y: 0 };
 
 
   constructor(
@@ -45,7 +44,7 @@ export class AppComponent implements OnInit {
     // Draw location on top of visible tiles only
     this.map.imgLoadingCount.subscribe( {
       next: (count: number) => {
-        if (count === 0) this.map.drawLocations(this.nextCameraOffset.x, this.nextCameraOffset.y, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL, this.prevZoomLevel);
+        if (count === 0) this.map.drawLocations(MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL, this.prevZoomLevel);
       },
     });
   }
@@ -58,23 +57,19 @@ export class AppComponent implements OnInit {
       this.map.setLayerSize(this.nextZoomLevel);
 
       const inc = updateTime/ANIMATION_TIME;
-      this.nextCameraOffset.x = Math.floor(this.prevCameraOffset.x - this.cameraOffsetDelta.x * inc);
-      this.nextCameraOffset.y = Math.floor(this.prevCameraOffset.y - this.cameraOffsetDelta.y * inc);
-      this.map.setCameraOffset(this.nextCameraOffset.x, this.nextCameraOffset.y);
+      this.map.setCameraOffset(this.prevCameraOffset, this.nextCameraOffset, inc);
       this.map.setCameraZoom(this.prevZoomLevel - ZOOM_LEVEL_OFFSET, this.nextZoomLevel - ZOOM_LEVEL_OFFSET, ZOOM_FACTOR, inc);
-      this.map.drawImageTiles(this.nextCameraOffset.x, this.nextCameraOffset.y);
+      this.map.drawImageTiles();
 
       if (ANIMATION_TIME - updateTime <= 0) {
         this.prevZoomLevel = this.nextZoomLevel;
         this.startZoomTime = 0;
         this.prevCameraOffset.x = this.nextCameraOffset.x;
         this.prevCameraOffset.y = this.nextCameraOffset.y;
-        this.cameraOffsetDelta.x = 0;
-        this.cameraOffsetDelta.y = 0;
         this.update = false;
       }
 
-      this.map.drawLocations(this.nextCameraOffset.x, this.nextCameraOffset.y, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL, this.prevZoomLevel);
+      this.map.drawLocations(MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL, this.prevZoomLevel);
     }
 
     requestAnimationFrame( () => this.draw() );
@@ -94,10 +89,10 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:mousemove',  ['$event'])
   onPointerMove(event: MouseEvent) {
-    this.map.updateCursorLocation(event, this.nextCameraOffset.x, this.nextCameraOffset.y);
+    this.map.updateCursorLocation(event);
     if (this.isDragging) {
-      this.prevCameraOffset.x = event.clientX - this.dragStart.x;
-      this.prevCameraOffset.y = event.clientY - this.dragStart.y;
+      this.nextCameraOffset.x = event.clientX - this.dragStart.x;
+      this.nextCameraOffset.y = event.clientY - this.dragStart.y;
       this.update = true;
     }
   }
@@ -117,11 +112,8 @@ export class AppComponent implements OnInit {
     this.startZoomTime = Date.now();
 
     const zoomDelta = Math.pow(ZOOM_FACTOR, Math.sign(-event.deltaY));
-    const nextCameraOffsetX = Math.floor(event.clientX - (event.clientX - this.prevCameraOffset.x) * zoomDelta);
-    const nextCameraOffsetY = Math.floor(event.clientY - (event.clientY - this.prevCameraOffset.y) * zoomDelta);
-
-    this.cameraOffsetDelta.x = this.prevCameraOffset.x - nextCameraOffsetX;
-    this.cameraOffsetDelta.y = this.prevCameraOffset.y - nextCameraOffsetY;
+    this.nextCameraOffset.x = Math.floor(event.clientX - (event.clientX - this.prevCameraOffset.x) * zoomDelta);
+    this.nextCameraOffset.y = Math.floor(event.clientY - (event.clientY - this.prevCameraOffset.y) * zoomDelta);
 
     this.update = true;
   }
