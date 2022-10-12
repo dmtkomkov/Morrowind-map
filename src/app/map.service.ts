@@ -12,6 +12,7 @@ import {
   ZOOM_FACTOR,
   ZOOM_LEVEL_OFFSET
 } from "./app.const";
+import { IQuest, QUESTS } from "./quests";
 
 const ORIGINAL_TILE_SIZE = 2048;
 
@@ -37,6 +38,7 @@ export class MapService {
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0); // TODO: calculate max number
   x: string = 'unknown';
   y: string = 'unknown';
+  questObjects: Path2D[];
 
   constructor() { }
 
@@ -153,27 +155,53 @@ export class MapService {
   }
 
   drawQuests() {
-    this.drawQuest();
+    this.questObjects = [];
+    QUESTS.forEach((quest: IQuest) => {
+      this.drawQuest(quest);
+    })
   }
 
-  private drawQuest() {
+  private drawQuest(quest: IQuest) {
     const zoom: number = this.cameraZoom * this.layerSize;
+    this.ctx.lineWidth = Math.max(zoom/1.5, 1.5);
+    const rad = 3;
 
-    let path: Path2D;
-    path = new Path2D();
-    this.ctx.lineWidth = 2;
+    quest.path.forEach((loc: ILoc) => {
+      const path2D = new Path2D();
+      path2D.moveTo((loc.x + rad) * zoom, loc.y * zoom);
+      path2D.arc(loc.x * zoom, loc.y * zoom, rad * zoom, 0, 2 * Math.PI);
+      this.ctx.stroke(path2D);
+      this.questObjects.push(path2D);
+    })
 
-    path.moveTo(1013 * zoom, 1010 * zoom);
-    path.arc(1010 * zoom, 1010 * zoom, 3 * zoom, 0, 2 * Math.PI);
-    this.ctx.stroke(path);
+    for(let i = 0; i < quest.path.length - 1; i++) {
+      const path2D = new Path2D();
+      const p1: ILoc = quest.path[i];
+      const p2: ILoc = quest.path[i + 1];
+      const vector = this.buildVector(p1, p2);
+      path2D.moveTo((quest.path[i].x + rad * vector.x) * zoom, (quest.path[i].y + rad * vector.y) * zoom);
+      path2D.lineTo((quest.path[i + 1].x - rad * vector.x) * zoom, (quest.path[i + 1].y - rad * vector.y) * zoom);
+      this.ctx.stroke(path2D);
+    }
+  }
 
-    path.moveTo(1003 * zoom, 1000 * zoom);
-    path.arc(1000 * zoom, 1000 * zoom, 3 * zoom, 0, 2 * Math.PI);
-    this.ctx.stroke(path);
+  private buildVector(p1: ILoc, p2: ILoc): ILoc {
+    let x: number = (p2.x - p1.x);
+    let y: number = (p2.y - p1.y);
+    const vectorNorm = Math.sqrt(x * x + y * y);
+    return { x: x/vectorNorm, y: y/vectorNorm };
+  }
 
-    path.moveTo(1010 * zoom, 1010 * zoom);
-    path.lineTo(1000 * zoom, 1000 * zoom);
-    this.ctx.stroke(path);
+  getQuestObject(x: number, y: number): Path2D | null {
+    let questObject: Path2D | null = null;
+    this.questObjects.forEach((quest: Path2D) => {
+      if (this.ctx.isPointInPath(quest, x, y)) {
+        questObject = quest;
+        return;
+      }
+    });
+
+    return questObject;
   }
 
   updateCursorLocation(event: MouseEvent) {

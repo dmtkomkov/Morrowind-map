@@ -20,7 +20,6 @@ export class AppComponent implements OnInit {
   update: boolean = true;
   startZoomTime: number = 0;
 
-
   constructor(
     private clipboard: Clipboard,
     private map: MapService,
@@ -51,7 +50,6 @@ export class AppComponent implements OnInit {
       const inc = updateTime/ANIMATION_TIME;
       this.map.setCameraOffset(this.prevCameraOffset, this.nextCameraOffset, inc);
       this.map.setCameraZoom(this.prevZoomLevel, this.nextZoomLevel, inc);
-      this.map.drawImageTiles();
 
       if (ANIMATION_TIME - updateTime <= 0) {
         this.prevZoomLevel = this.nextZoomLevel;
@@ -60,6 +58,7 @@ export class AppComponent implements OnInit {
         this.update = false;
       }
 
+      this.map.drawImageTiles();
       this.map.drawQuests();
       this.map.drawLocations(this.prevZoomLevel);
     }
@@ -86,6 +85,9 @@ export class AppComponent implements OnInit {
       this.nextCameraOffset.x = event.clientX - this.dragStart.x;
       this.nextCameraOffset.y = event.clientY - this.dragStart.y;
       this.update = true;
+    } else {
+      const q: Path2D = this.map.getQuestObject(event.clientX, event.clientY) as Path2D;
+      console.log(q);
     }
   }
 
