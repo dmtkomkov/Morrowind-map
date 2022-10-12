@@ -111,10 +111,6 @@ export class MapService {
     const endX: number = (window.innerWidth - this.cameraOffset.x) / zoom;
     const endY: number = (window.innerHeight - this.cameraOffset.y) / zoom;
 
-    // this.arc = new Path2D();
-    // this.arc.arc(1000 * zoom, 1000 * zoom, 2 * zoom, 0, 2 * Math.PI);
-    // this.ctx.stroke(this.arc);
-
     LOCATIONS.forEach((loc: ILocation) => {
       loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
         const minZoom = zoomLoc.minZoom || MIN_ZOOM_LEVEL;
@@ -154,6 +150,30 @@ export class MapService {
     this.ctx.fillStyle = '#e7db91';
     this.ctx.globalAlpha = 1.0;
     this.ctx.fillText(text, x + 4, y + 13);
+  }
+
+  drawQuests() {
+    this.drawQuest();
+  }
+
+  private drawQuest() {
+    const zoom: number = this.cameraZoom * this.layerSize;
+
+    let path: Path2D;
+    path = new Path2D();
+    this.ctx.lineWidth = 2;
+
+    path.moveTo(1013 * zoom, 1010 * zoom);
+    path.arc(1010 * zoom, 1010 * zoom, 3 * zoom, 0, 2 * Math.PI);
+    this.ctx.stroke(path);
+
+    path.moveTo(1003 * zoom, 1000 * zoom);
+    path.arc(1000 * zoom, 1000 * zoom, 3 * zoom, 0, 2 * Math.PI);
+    this.ctx.stroke(path);
+
+    path.moveTo(1010 * zoom, 1010 * zoom);
+    path.lineTo(1000 * zoom, 1000 * zoom);
+    this.ctx.stroke(path);
   }
 
   updateCursorLocation(event: MouseEvent) {

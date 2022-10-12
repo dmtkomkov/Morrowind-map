@@ -33,7 +33,10 @@ export class AppComponent implements OnInit {
     // Draw location on top of visible tiles only
     this.map.imgLoadingCount.subscribe( {
       next: (count: number) => {
-        if (count === 0) this.map.drawLocations(this.prevZoomLevel);
+        if (count === 0) {
+          this.map.drawQuests();
+          this.map.drawLocations(this.prevZoomLevel);
+        }
       },
     });
   }
@@ -57,6 +60,7 @@ export class AppComponent implements OnInit {
         this.update = false;
       }
 
+      this.map.drawQuests();
       this.map.drawLocations(this.prevZoomLevel);
     }
 
