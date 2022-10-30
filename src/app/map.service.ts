@@ -12,7 +12,7 @@ import {
   ZOOM_FACTOR,
   ZOOM_LEVEL_OFFSET
 } from "./app.const";
-import { IQuest, QUESTS } from "./quests";
+import { IQuest, IQuestObject, QUESTS } from "./quests";
 
 const ORIGINAL_TILE_SIZE = 2048;
 
@@ -38,7 +38,7 @@ export class MapService {
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0); // TODO: calculate max number
   x: string = 'unknown';
   y: string = 'unknown';
-  questObjects: Path2D[];
+  questObjects: IQuestObject[];
 
   constructor() { }
 
@@ -171,7 +171,7 @@ export class MapService {
       path2D.moveTo((loc.x + rad) * zoom, loc.y * zoom);
       path2D.arc(loc.x * zoom, loc.y * zoom, rad * zoom, 0, 2 * Math.PI);
       this.ctx.stroke(path2D);
-      this.questObjects.push(path2D);
+      this.questObjects.push({ name: quest.name, questPath2D: path2D });
     })
 
     for(let i = 0; i < quest.path.length - 1; i++) {
@@ -192,16 +192,16 @@ export class MapService {
     return { x: x/vectorNorm, y: y/vectorNorm };
   }
 
-  getQuestObject(x: number, y: number): Path2D | null {
-    let questObject: Path2D | null = null;
-    this.questObjects.forEach((quest: Path2D) => {
-      if (this.ctx.isPointInPath(quest, x, y)) {
-        questObject = quest;
+  getQuestObject(x: number, y: number): IQuestObject | null {
+    let result: IQuestObject | null = null;
+    this.questObjects.forEach((questObject: IQuestObject) => {
+      if (this.ctx.isPointInPath(questObject.questPath2D, x, y)) {
+        result = questObject;
         return;
       }
     });
 
-    return questObject;
+    return result;
   }
 
   updateCursorLocation(event: MouseEvent) {

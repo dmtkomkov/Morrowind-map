@@ -7,16 +7,20 @@ canvas {
   float: left;
 }
 
-.coord-overlay {
+.panel-info {
   cursor: grab;
   text-align: center;
   position: absolute;
   top: 0;
   left: 0;
   width: 150px;
-  height: 20px;
+  height: auto;
   border: 1px solid cornflowerblue;
   background: rgba(116, 123, 177, 0.7);
+}
+
+.pointer {
+  cursor: pointer;
 }
 
 .grabbing {

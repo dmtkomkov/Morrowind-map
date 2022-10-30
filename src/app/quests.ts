@@ -5,6 +5,11 @@ export interface IQuest {
   path: ILoc[];
 }
 
+export interface IQuestObject {
+  name: string;
+  questPath2D: Path2D;
+}
+
 export const QUESTS: IQuest[] = [
   {
     name: 'Quest1',

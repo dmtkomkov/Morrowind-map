@@ -1,4 +1,5 @@
-<canvas #canvas [class.grabbing]="isDragging"></canvas>
-<div class="coord-overlay" [class.grabbing]="isDragging">
-  x:{{ mapX }}  y:{{ mapY }}
+<canvas #canvas [class.grabbing]="isDragging" [class.pointer]="isPointing"></canvas>
+<div class="panel-info" [class.grabbing]="isDragging">
+  <div>x:{{ mapX }}  y:{{ mapY }}</div>
+  <div *ngIf="hoveredObject">Quest: {{ hoveredObject }}</div>
 </div>

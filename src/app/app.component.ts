@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MapService } from "./map.service";
 import { ANIMATION_TIME, DEFAULT_OFFSET, ILoc, MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL, ZOOM_FACTOR } from "./app.const";
+import { IQuestObject } from "./quests";
 
 @Component({
   selector: 'app-root',
@@ -16,9 +17,11 @@ export class AppComponent implements OnInit {
   prevZoomLevel: number = MIN_ZOOM_LEVEL;
   nextZoomLevel: number = this.prevZoomLevel;
   isDragging: boolean = false;
+  isPointing: boolean = false;
   dragStart: ILoc = { x: 0, y: 0 };
   update: boolean = true;
   startZoomTime: number = 0;
+  hoveredObject: string | null;
 
   constructor(
     private clipboard: Clipboard,
@@ -86,8 +89,9 @@ export class AppComponent implements OnInit {
       this.nextCameraOffset.y = event.clientY - this.dragStart.y;
       this.update = true;
     } else {
-      const q: Path2D = this.map.getQuestObject(event.clientX, event.clientY) as Path2D;
-      console.log(q);
+      const questObject: IQuestObject | null = this.map.getQuestObject(event.clientX, event.clientY);
+      this.isPointing = Boolean(questObject);
+      this.hoveredObject = questObject?.name || null;
     }
   }
 
