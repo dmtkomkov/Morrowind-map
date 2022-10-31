@@ -36,4 +36,5 @@ export const DEFAULT_ICONS = {
   [ELocationType.VILLAGE]: new Image(),
   [ELocationType.CAMP]: new Image(),
   [ELocationType.STRONGHOLD]: new Image(),
+  [ELocationType.HOUSE]: new Image(),
 };

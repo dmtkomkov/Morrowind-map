@@ -6,6 +6,7 @@ export enum ELocationType {
   VILLAGE,
   CAMP,
   STRONGHOLD,
+  HOUSE,
 }
 
 export interface ILocation {
@@ -165,6 +166,50 @@ export const LOCATIONS: ILocation[] = [
           { x: 1458.4, y: 658.2, name: 'Ahemmusa'},
           { x: 1390.1, y: 853.6, name: 'Zainab'},
           { x: 1518.4, y: 1199.7, name: 'Erabenimsun'},
+        ],
+      }, {
+        minZoom: 5,
+        maxZoom: 9,
+        locItems: [
+          { x: 1225.5, y: 554.1, name: 'Aharasaplit'},
+          { x: 745.2, y: 719.6, name: 'Aidanat'},
+          { x: 1524.3, y: 999.2, name: 'Ashamanu'},
+          { x: 1426.0, y: 935.5, name: 'Elanius'},
+          { x: 1520.5, y: 1467.7, name: 'Kaushtababi'},
+          { x: 1142.6, y: 713.0, name: 'Mamshar-Disamus'},
+          { x: 1514.7, y: 909.0, name: 'Massahanud'},
+          { x: 918.6, y: 842.5, name: 'Mila-Nipal'},
+          { x: 1494.1, y: 823.0, name: 'Salit'},
+          { x: 817.7, y: 694.9, name: 'Shashmanu'},
+          { x: 1419.3, y: 1199.0, name: 'Shashurari'},
+          { x: 1511.9, y: 1084.6, name: 'Bensiberib'},
+          { x: 1539.9, y: 1145.9, name: 'Sobitbael'},
+          { x: 1427.1, y: 788.2, name: 'Yakaridan'},
+        ],
+      },
+    ]
+  }, {
+    type: ELocationType.HOUSE,
+    src: 'assets/icons/MW-icon-map-House.webp',
+    zoomLocs: [
+      {
+        minZoom: 10,
+        locItems: [
+          { x: 1225.5, y: 554.1, name: 'Zallay'},
+          { x: 745.2, y: 719.6, name: 'Abassel'},
+          { x: 1524.3, y: 999.2, name: 'Kausha'},
+          { x: 1426.0, y: 935.5, name: 'Yapal'},
+          { x: 1520.5, y: 1467.7, name: 'Adibael'},
+          { x: 1142.6, y: 713.0, name: 'Maesat'},
+          { x: 1514.7, y: 909.0, name: 'Sargon'},
+          { x: 918.6, y: 842.5, name: 'Manat'},
+          { x: 1492.3, y: 822.1, name: 'Zalit'},
+          { x: 1496.0, y: 821.9, name: 'Zelay'},
+          { x: 817.7, y: 694.9, name: 'Anit'},
+          { x: 1419.3, y: 1199.0, name: 'Zennammu'},
+          { x: 1511.9, y: 1084.6, name: 'Odaishah Yasalmibaal'},
+          { x: 1539.9, y: 1145.9, name: 'Mal'},
+          { x: 1427.1, y: 788.2, name: 'Kitbael'},
         ],
       },
     ]
