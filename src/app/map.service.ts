@@ -31,8 +31,8 @@ export class MapService {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private layerSize: ELayerSize = ELayerSize.LAYER_SIZE_2;
-  cameraZoom: number = 0;
-  cameraOffset: ILoc = { ...DEFAULT_OFFSET };
+  private cameraZoom: number = 0;
+  private cameraOffset: ILoc = { ...DEFAULT_OFFSET };
   private layers: ILayers = { ...DEFAULT_LAYERS };
   private icons: Icons = { ...DEFAULT_ICONS };
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0); // TODO: calculate max number
