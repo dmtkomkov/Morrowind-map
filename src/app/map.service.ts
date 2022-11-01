@@ -73,7 +73,7 @@ export class MapService {
   }
 
   setCameraZoom(prevZoomLevel: number, nextZoomLevel: number, inc: number) {
-    const prevCameraZoom = 2 * Math.pow(ZOOM_FACTOR, prevZoomLevel - ZOOM_LEVEL_OFFSET)/this.layerSize;
+    const prevCameraZoom = 2 * Math.pow(ZOOM_FACTOR, prevZoomLevel -  ZOOM_LEVEL_OFFSET)/this.layerSize;
     const nextCameraZoom = 2 * Math.pow(ZOOM_FACTOR, nextZoomLevel - ZOOM_LEVEL_OFFSET)/this.layerSize;
     this.cameraZoom = prevCameraZoom + (nextCameraZoom - prevCameraZoom) * inc;
   }
@@ -163,25 +163,51 @@ export class MapService {
 
   private drawQuest(quest: IQuest) {
     const zoom: number = this.cameraZoom * this.layerSize;
+    const startX: number = (0 - this.cameraOffset.x) / zoom;
+    const startY: number = (0 - this.cameraOffset.y) / zoom;
+    const endX: number = (window.innerWidth - this.cameraOffset.x) / zoom;
+    const endY: number = (window.innerHeight - this.cameraOffset.y) / zoom;
+
     this.ctx.lineWidth = Math.max(zoom/1.5, 1.5);
+    this.ctx.strokeStyle = quest.color;
     const rad = 3;
 
     quest.path.forEach((loc: ILoc) => {
-      const path2D = new Path2D();
-      path2D.moveTo((loc.x + rad) * zoom, loc.y * zoom);
-      path2D.arc(loc.x * zoom, loc.y * zoom, rad * zoom, 0, 2 * Math.PI);
-      this.ctx.stroke(path2D);
-      this.questObjects.push({ name: quest.name, questPath2D: path2D });
+      const {x, y} = loc;
+      if (x > startX - rad && x < endX + rad && y > startY - rad && y < endY + rad) {
+        const path2D = new Path2D();
+        path2D.moveTo((loc.x + rad) * zoom, loc.y * zoom);
+        path2D.arc(loc.x * zoom, loc.y * zoom, rad * zoom, 0, 2 * Math.PI);
+        this.ctx.stroke(path2D);
+        this.questObjects.push({name: quest.name, questPath2D: path2D});
+      }
     })
 
     for(let i = 0; i < quest.path.length - 1; i++) {
       const path2D = new Path2D();
       const p1: ILoc = quest.path[i];
       const p2: ILoc = quest.path[i + 1];
-      const vector = this.buildVector(p1, p2);
-      path2D.moveTo((quest.path[i].x + rad * vector.x) * zoom, (quest.path[i].y + rad * vector.y) * zoom);
-      path2D.lineTo((quest.path[i + 1].x - rad * vector.x) * zoom, (quest.path[i + 1].y - rad * vector.y) * zoom);
-      this.ctx.stroke(path2D);
+      const s1: ILoc = { x: startX, y: startY };
+      const s2: ILoc = { x: endX, y: startY };
+      const s3: ILoc = { x: endX, y: endY };
+      const s4: ILoc = { x: startX, y: endY };
+      const vTopLeft: boolean = this.getVectorDirection(p1, p2, s1);
+      const vTopRight: boolean = this.getVectorDirection(p1, p2, s2);
+      const vBottomRight: boolean = this.getVectorDirection(p1, p2, s3);
+      const vBottomLeft: boolean = this.getVectorDirection(p1, p2, s4);
+      const vDirections: boolean[] = [vTopLeft, vTopRight, vBottomLeft, vBottomRight];
+      const vTop: boolean = this.getVectorDirection(s1, s2, p1) != this.getVectorDirection(s1, s2, p2);
+      const vRight: boolean = this.getVectorDirection(s2, s3, p1) != this.getVectorDirection(s2, s3, p2);
+      const vBottom: boolean = this.getVectorDirection(s3, s4, p1) != this.getVectorDirection(s3, s4, p2);
+      const vLeft: boolean = this.getVectorDirection(s4, s1, p1) != this.getVectorDirection(s4, s1, p2);
+      const isCrossedWindow: boolean = !(vDirections.every(v => v) || vDirections.every(v => !v)) && ((vTop || vBottom) && (vLeft || vRight));
+      const isInsideWindow: boolean = (p1.x > startX && p1.x < endX  && p1.y > startY && p1.y < endY) || (p2.x > startX && p2.x < endX  && p2.y > startY && p2.y < endY);
+      if (isInsideWindow || isCrossedWindow) {
+        const vector = this.buildVector(p1, p2);
+        path2D.moveTo((p1.x + rad * vector.x) * zoom, (p1.y + rad * vector.y) * zoom);
+        path2D.lineTo((p2.x - rad * vector.x) * zoom, (p2.y - rad * vector.y) * zoom);
+        this.ctx.stroke(path2D);
+      }
     }
   }
 
@@ -190,6 +216,10 @@ export class MapService {
     let y: number = (p2.y - p1.y);
     const vectorNorm = Math.sqrt(x * x + y * y);
     return { x: x/vectorNorm, y: y/vectorNorm };
+  }
+
+  private getVectorDirection(p1: ILoc, p2: ILoc, vertex: ILoc): boolean {
+    return (vertex.x - p1.x) * (vertex.y - p2.y) - (vertex.x - p2.x) * (vertex.y - p1.y) > 0;
   }
 
   getQuestObject(x: number, y: number): IQuestObject | null {
