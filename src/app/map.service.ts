@@ -16,6 +16,14 @@ import { IQuest, IQuestObject, QUESTS } from "./quests";
 
 const ORIGINAL_TILE_SIZE = 2048;
 
+interface IDisplayData {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  zoom: number;
+}
+
 export type Icons = {
   [key in ELocationType]: HTMLImageElement;
 }
@@ -107,11 +115,7 @@ export class MapService {
   }
 
   drawLocations(zoomLevel: number) {
-    const zoom: number = this.cameraZoom * this.layerSize;
-    const startX: number = (0 - this.cameraOffset.x) / zoom;
-    const startY: number = (0 - this.cameraOffset.y) / zoom;
-    const endX: number = (window.innerWidth - this.cameraOffset.x) / zoom;
-    const endY: number = (window.innerHeight - this.cameraOffset.y) / zoom;
+    const { zoom, startX, startY, endX, endY } = this.getDisplayData();
 
     LOCATIONS.forEach((loc: ILocation) => {
       loc.zoomLocs.forEach((zoomLoc: IZoomLocation) => {
@@ -162,11 +166,7 @@ export class MapService {
   }
 
   private drawQuest(quest: IQuest) {
-    const zoom: number = this.cameraZoom * this.layerSize;
-    const startX: number = (0 - this.cameraOffset.x) / zoom;
-    const startY: number = (0 - this.cameraOffset.y) / zoom;
-    const endX: number = (window.innerWidth - this.cameraOffset.x) / zoom;
-    const endY: number = (window.innerHeight - this.cameraOffset.y) / zoom;
+    const { zoom, startX, startY, endX, endY } = this.getDisplayData();
 
     this.ctx.lineWidth = Math.max(zoom/1.5, 1.5);
     this.ctx.strokeStyle = quest.color;
@@ -176,33 +176,29 @@ export class MapService {
       const {x, y} = loc;
       if (x > startX - rad && x < endX + rad && y > startY - rad && y < endY + rad) {
         const path2D = new Path2D();
-        path2D.moveTo((loc.x + rad) * zoom, loc.y * zoom);
-        path2D.arc(loc.x * zoom, loc.y * zoom, rad * zoom, 0, 2 * Math.PI);
+        path2D.moveTo((x + rad) * zoom, y * zoom);
+        path2D.arc(x * zoom, y * zoom, rad * zoom, 0, 2 * Math.PI);
         this.ctx.stroke(path2D);
-        this.questObjects.push({name: quest.name, questPath2D: path2D});
+        this.questObjects.push({ name: quest.name, questPath2D: path2D });
       }
     })
 
     for(let i = 0; i < quest.path.length - 1; i++) {
-      const path2D = new Path2D();
       const p1: ILoc = quest.path[i];
       const p2: ILoc = quest.path[i + 1];
-      const s1: ILoc = { x: startX, y: startY };
-      const s2: ILoc = { x: endX, y: startY };
-      const s3: ILoc = { x: endX, y: endY };
-      const s4: ILoc = { x: startX, y: endY };
-      const vTopLeft: boolean = this.getVectorDirection(p1, p2, s1);
-      const vTopRight: boolean = this.getVectorDirection(p1, p2, s2);
-      const vBottomRight: boolean = this.getVectorDirection(p1, p2, s3);
-      const vBottomLeft: boolean = this.getVectorDirection(p1, p2, s4);
+      const vTopLeft: boolean = this.getVectorDirection(p1, p2, { x: startX, y: startY });
+      const vTopRight: boolean = this.getVectorDirection(p1, p2, { x: endX, y: startY });
+      const vBottomRight: boolean = this.getVectorDirection(p1, p2, { x: endX, y: endY });
+      const vBottomLeft: boolean = this.getVectorDirection(p1, p2, { x: startX, y: endY });
       const vDirections: boolean[] = [vTopLeft, vTopRight, vBottomLeft, vBottomRight];
-      const vTop: boolean = this.getVectorDirection(s1, s2, p1) != this.getVectorDirection(s1, s2, p2);
-      const vRight: boolean = this.getVectorDirection(s2, s3, p1) != this.getVectorDirection(s2, s3, p2);
-      const vBottom: boolean = this.getVectorDirection(s3, s4, p1) != this.getVectorDirection(s3, s4, p2);
-      const vLeft: boolean = this.getVectorDirection(s4, s1, p1) != this.getVectorDirection(s4, s1, p2);
+      const vTop: boolean = Math.sign(p1.y - startY) != Math.sign(p2.y - startY);
+      const vRight: boolean = Math.sign(p1.x - endX) != Math.sign(p2.x - endX);
+      const vBottom: boolean = Math.sign(p1.y - endY) != Math.sign(p2.y - endY);
+      const vLeft: boolean = Math.sign(p1.x - startX) != Math.sign(p2.x - startX);
       const isCrossedWindow: boolean = !(vDirections.every(v => v) || vDirections.every(v => !v)) && ((vTop || vBottom) && (vLeft || vRight));
       const isInsideWindow: boolean = (p1.x > startX && p1.x < endX  && p1.y > startY && p1.y < endY) || (p2.x > startX && p2.x < endX  && p2.y > startY && p2.y < endY);
       if (isInsideWindow || isCrossedWindow) {
+        const path2D = new Path2D();
         const vector = this.buildVector(p1, p2);
         path2D.moveTo((p1.x + rad * vector.x) * zoom, (p1.y + rad * vector.y) * zoom);
         path2D.lineTo((p2.x - rad * vector.x) * zoom, (p2.y - rad * vector.y) * zoom);
@@ -238,6 +234,15 @@ export class MapService {
     const zoom: number = this.cameraZoom * this.layerSize;
     this.x = ((event.clientX - this.cameraOffset.x) / zoom).toFixed(1);
     this.y = ((event.clientY - this.cameraOffset.y) / zoom).toFixed(1);
+  }
+
+  private getDisplayData(): IDisplayData {
+    const zoom: number = this.cameraZoom * this.layerSize;
+    const startX: number = (0 - this.cameraOffset.x) / zoom;
+    const startY: number = (0 - this.cameraOffset.y) / zoom;
+    const endX: number = (window.innerWidth - this.cameraOffset.x) / zoom;
+    const endY: number = (window.innerHeight - this.cameraOffset.y) / zoom;
+    return { zoom, startX, startY, endX, endY };
   }
 
   clean() {
