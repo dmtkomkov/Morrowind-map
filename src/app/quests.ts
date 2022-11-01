@@ -1,7 +1,8 @@
 import { ILoc } from "./app.const";
 
 export enum EQuestType {
-  OTHER
+  OTHER,
+  MAGIC_GUILD
 }
 
 export interface IQuestItem {
@@ -22,22 +23,20 @@ export interface IQuestObject {
 
 export const QUESTS: IQuest[] = [
   {
-    type: EQuestType.OTHER,
-    color: 'white',
+    type: EQuestType.MAGIC_GUILD,
+    color: 'blue',
     questItems: [
       {
-        name: 'Quest1',
+        name: 'Four Types of Mushrooms',
         path: [
-          { x: 1000, y: 1000 },
-          { x: 1010, y: 1010 },
+          { x: 1000, y: 1250 },
+          { x: 1042, y: 1438 },
         ]
       },
       {
-        name: 'Quest2',
+        name: 'Stolen Reports',
         path: [
-          { x: 1100, y: 1050 },
-          { x: 1050, y: 1100 },
-          { x: 1100, y: 1100 },
+          { x: 1005, y: 1250 },
         ]
       }
     ]

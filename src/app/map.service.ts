@@ -172,7 +172,7 @@ export class MapService {
 
     this.ctx.lineWidth = Math.max(zoom/1.5, 1.5);
     this.ctx.strokeStyle = questColor;
-    const rad = 3;
+    const rad = 2;
 
     questItem.path.forEach((loc: ILoc) => {
       const {x, y} = loc;
@@ -197,7 +197,7 @@ export class MapService {
       const vRight: boolean = Math.sign(p1.x - endX) != Math.sign(p2.x - endX);
       const vBottom: boolean = Math.sign(p1.y - endY) != Math.sign(p2.y - endY);
       const vLeft: boolean = Math.sign(p1.x - startX) != Math.sign(p2.x - startX);
-      const isCrossedWindow: boolean = !(vDirections.every(v => v) || vDirections.every(v => !v)) && ((vTop || vBottom) && (vLeft || vRight));
+      const isCrossedWindow: boolean = !(vDirections.every(v => v) || vDirections.every(v => !v)) && (vTop || vBottom || vLeft || vRight);
       const isInsideWindow: boolean = (p1.x > startX && p1.x < endX  && p1.y > startY && p1.y < endY) || (p2.x > startX && p2.x < endX  && p2.y > startY && p2.y < endY);
       if (isInsideWindow || isCrossedWindow) {
         const path2D = new Path2D();
