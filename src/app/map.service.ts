@@ -12,7 +12,7 @@ import {
   ZOOM_FACTOR,
   ZOOM_LEVEL_OFFSET
 } from "./app.const";
-import { IQuest, IQuestObject, QUESTS } from "./quests";
+import { IQuest, IQuestItem, IQuestObject, QUESTS } from "./quests";
 
 const ORIGINAL_TILE_SIZE = 2048;
 
@@ -161,31 +161,33 @@ export class MapService {
   drawQuests() {
     this.questObjects = [];
     QUESTS.forEach((quest: IQuest) => {
-      this.drawQuest(quest);
+      quest.questItems.forEach((questItem: IQuestItem) => {
+        this.drawQuest(questItem, quest.color);
+      });
     })
   }
 
-  private drawQuest(quest: IQuest) {
+  private drawQuest(questItem: IQuestItem, questColor: string) {
     const { zoom, startX, startY, endX, endY } = this.getDisplayData();
 
     this.ctx.lineWidth = Math.max(zoom/1.5, 1.5);
-    this.ctx.strokeStyle = quest.color;
+    this.ctx.strokeStyle = questColor;
     const rad = 3;
 
-    quest.path.forEach((loc: ILoc) => {
+    questItem.path.forEach((loc: ILoc) => {
       const {x, y} = loc;
       if (x > startX - rad && x < endX + rad && y > startY - rad && y < endY + rad) {
         const path2D = new Path2D();
         path2D.moveTo((x + rad) * zoom, y * zoom);
         path2D.arc(x * zoom, y * zoom, rad * zoom, 0, 2 * Math.PI);
         this.ctx.stroke(path2D);
-        this.questObjects.push({ name: quest.name, questPath2D: path2D });
+        this.questObjects.push({ name: questItem.name, questPath2D: path2D });
       }
     })
 
-    for(let i = 0; i < quest.path.length - 1; i++) {
-      const p1: ILoc = quest.path[i];
-      const p2: ILoc = quest.path[i + 1];
+    for(let i = 0; i < questItem.path.length - 1; i++) {
+      const p1: ILoc = questItem.path[i];
+      const p2: ILoc = questItem.path[i + 1];
       const vTopLeft: boolean = this.getVectorDirection(p1, p2, { x: startX, y: startY });
       const vTopRight: boolean = this.getVectorDirection(p1, p2, { x: endX, y: startY });
       const vBottomRight: boolean = this.getVectorDirection(p1, p2, { x: endX, y: endY });
