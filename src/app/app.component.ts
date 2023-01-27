@@ -21,7 +21,7 @@ export class AppComponent implements OnInit {
   dragStart: ILoc = { x: 0, y: 0 };
   update: boolean = true;
   startZoomTime: number = 0;
-  hoveredObject: string | null;
+  hoveredObject: IQuestObject | null;
 
   constructor(
     private clipboard: Clipboard,
@@ -91,7 +91,7 @@ export class AppComponent implements OnInit {
     } else {
       const questObject: IQuestObject | null = this.map.getQuestObject(event.clientX, event.clientY);
       this.isPointing = Boolean(questObject);
-      this.hoveredObject = questObject?.name || null;
+      this.hoveredObject = questObject || null;
     }
   }
 

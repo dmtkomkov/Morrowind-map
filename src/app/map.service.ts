@@ -46,7 +46,7 @@ export class MapService {
   imgLoadingCount: BehaviorSubject<number> = new BehaviorSubject<number>(0); // TODO: calculate max number
   x: string = 'unknown';
   y: string = 'unknown';
-  questObjects: IQuestObject[];
+  visibleQuestObjects: IQuestObject[];
 
   constructor() { }
 
@@ -159,7 +159,7 @@ export class MapService {
   }
 
   drawQuests() {
-    this.questObjects = [];
+    this.visibleQuestObjects = [];
     QUESTS.forEach((quest: IQuest) => {
       quest.questItems.forEach((questItem: IQuestItem) => {
         this.drawQuest(questItem, quest.color);
@@ -181,7 +181,7 @@ export class MapService {
         path2D.moveTo((x + rad) * zoom, y * zoom);
         path2D.arc(x * zoom, y * zoom, rad * zoom, 0, 2 * Math.PI);
         this.ctx.stroke(path2D);
-        this.questObjects.push({ name: questItem.name, questPath2D: path2D });
+        this.visibleQuestObjects.push({ name: questItem.name, questPath2D: path2D });
       }
     })
 
@@ -222,7 +222,7 @@ export class MapService {
 
   getQuestObject(x: number, y: number): IQuestObject | null {
     let result: IQuestObject | null = null;
-    this.questObjects.forEach((questObject: IQuestObject) => {
+    this.visibleQuestObjects.forEach((questObject: IQuestObject) => {
       if (this.ctx.isPointInPath(questObject.questPath2D, x, y)) {
         result = questObject;
         return;
