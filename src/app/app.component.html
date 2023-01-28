@@ -1,5 +1,13 @@
 <canvas #canvas [class.grabbing]="isDragging" [class.pointer]="isPointing"></canvas>
-<div class="panel-info" [class.grabbing]="isDragging">
+<div class="panel-info-left" [class.grabbing]="isDragging">
   <div>x:{{ mapX }}  y:{{ mapY }}</div>
-  <div *ngIf="hoveredObject">Quest: {{ hoveredObject.name }}</div>
+  <div>zoom level: {{ nextZoomLevel }}/10</div>
+</div>
+<div class="panel-info-right" [class.grabbing]="isDragging">
+  <div>Hovered Items:</div>
+  <div *ngIf="hoveredObjects.length">
+    <div *ngFor="let quest of hoveredObjects">
+      [Quest {{ quest.questItem.giver }}] {{ quest.questItem.name }}
+    </div>
+  </div>
 </div>

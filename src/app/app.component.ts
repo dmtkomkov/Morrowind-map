@@ -1,7 +1,15 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MapService } from "./map.service";
-import { ANIMATION_TIME, DEFAULT_OFFSET, ILoc, MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL, ZOOM_FACTOR } from "./app.const";
+import {
+  ANIMATION_TIME,
+  DEFAULT_OFFSET,
+  HOVERING_ZOOM,
+  ILoc,
+  MAX_ZOOM_LEVEL,
+  MIN_ZOOM_LEVEL,
+  ZOOM_FACTOR,
+} from "./app.const";
 import { IQuestObject } from "./quests";
 
 @Component({
@@ -21,7 +29,8 @@ export class AppComponent implements OnInit {
   dragStart: ILoc = { x: 0, y: 0 };
   update: boolean = true;
   startZoomTime: number = 0;
-  hoveredObject: IQuestObject | null;
+  hoveredObjects: IQuestObject[] = [];
+  enableOnHover: boolean = false;
 
   constructor(
     private clipboard: Clipboard,
@@ -89,9 +98,10 @@ export class AppComponent implements OnInit {
       this.nextCameraOffset.y = event.clientY - this.dragStart.y;
       this.update = true;
     } else {
-      const questObject: IQuestObject | null = this.map.getQuestObject(event.clientX, event.clientY);
-      this.isPointing = Boolean(questObject);
-      this.hoveredObject = questObject || null;
+      if (this.enableOnHover) {
+        this.hoveredObjects = this.map.getHoveredQuestObjects(event.clientX, event.clientY);
+        this.isPointing = Boolean(this.hoveredObjects.length);
+      }
     }
   }
 
@@ -106,6 +116,14 @@ export class AppComponent implements OnInit {
       this.nextZoomLevel -= Math.sign(-event.deltaY);
       return;
     }
+
+    this.enableOnHover = this.nextZoomLevel > HOVERING_ZOOM;
+    if (!this.enableOnHover) {
+      this.hoveredObjects = []
+    } else {
+      this.hoveredObjects = this.map.getHoveredQuestObjects(event.clientX, event.clientY);
+    }
+    this.isPointing = Boolean(this.hoveredObjects.length);
 
     this.startZoomTime = Date.now();
 

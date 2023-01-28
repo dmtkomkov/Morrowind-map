@@ -14,6 +14,9 @@ export const ZOOM_FACTOR = 1.5;
 
 export const DEFAULT_OFFSET = { x: 0, y: -120 };
 
+export const HOVERING_ZOOM = 4;
+export const QUEST_OBJECT_RAD = 2;
+
 export enum ELayerSize {
   LAYER_SIZE_2 = 2,
   LAYER_SIZE_4 = 4,

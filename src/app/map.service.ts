@@ -8,7 +8,7 @@ import {
   ELayerSize,
   ILoc,
   MAX_ZOOM_LEVEL,
-  MIN_ZOOM_LEVEL,
+  MIN_ZOOM_LEVEL, QUEST_OBJECT_RAD,
   ZOOM_FACTOR,
   ZOOM_LEVEL_OFFSET
 } from "./app.const";
@@ -170,9 +170,9 @@ export class MapService {
   private drawQuest(questItem: IQuestItem, questColor: string) {
     const { zoom, startX, startY, endX, endY } = this.getDisplayData();
 
-    this.ctx.lineWidth = Math.max(zoom/1.5, 1.5);
+    this.ctx.lineWidth = Math.max(zoom/2, 1.5);
     this.ctx.strokeStyle = questColor;
-    const rad = 2;
+    const rad = QUEST_OBJECT_RAD;
 
     questItem.path.forEach((loc: ILoc) => {
       const {x, y} = loc;
@@ -181,7 +181,7 @@ export class MapService {
         path2D.moveTo((x + rad) * zoom, y * zoom);
         path2D.arc(x * zoom, y * zoom, rad * zoom, 0, 2 * Math.PI);
         this.ctx.stroke(path2D);
-        this.visibleQuestObjects.push({ name: questItem.name, questPath2D: path2D });
+        this.visibleQuestObjects.push({ questItem, questPath2D: path2D });
       }
     })
 
@@ -220,12 +220,11 @@ export class MapService {
     return (vertex.x - p1.x) * (vertex.y - p2.y) - (vertex.x - p2.x) * (vertex.y - p1.y) > 0;
   }
 
-  getQuestObject(x: number, y: number): IQuestObject | null {
-    let result: IQuestObject | null = null;
+  getHoveredQuestObjects(x: number, y: number): IQuestObject[] {
+    const result: IQuestObject[] = [];
     this.visibleQuestObjects.forEach((questObject: IQuestObject) => {
       if (this.ctx.isPointInPath(questObject.questPath2D, x, y)) {
-        result = questObject;
-        return;
+        result.push(questObject);
       }
     });
 
